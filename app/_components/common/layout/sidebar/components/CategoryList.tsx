@@ -15,18 +15,18 @@ import {
   DropdownMenu,
   DropdownMenuItem,
 } from "@/app/_components/ui/elements/dropdown-menu";
-import { Category, Checklist, Document } from "@/app/_types";
+import { Category, Checklist, Note } from "@/app/_types";
 
 interface CategoryListProps {
   categories: Category[];
-  items: (Checklist | Document)[];
+  items: (Checklist | Note)[];
   collapsedCategories: Set<string>;
   onToggleCategory: (categoryName: string) => void;
   onDeleteCategory: (categoryName: string) => void;
   onRenameCategory: (categoryName: string) => void;
   onQuickCreate: (categoryName: string) => void;
-  onItemClick: (item: Checklist | Document) => void;
-  isItemSelected: (item: Checklist | Document) => boolean;
+  onItemClick: (item: Checklist | Note) => void;
+  isItemSelected: (item: Checklist | Note) => boolean;
   mode: "checklists" | "docs";
 }
 
@@ -100,7 +100,7 @@ export function CategoryList({
                   onClick={() => onQuickCreate(category.name)}
                   icon={<Plus className="h-4 w-4" />}
                 >
-                  New {mode === "checklists" ? "Checklist" : "Document"}
+                  New {mode === "checklists" ? "Checklist" : "Note"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => onRenameCategory(category.name)}

@@ -86,7 +86,7 @@ export async function updatePrivacySettingsAction(formData: FormData): Promise<R
             allowSharing,
             showProfileToOthers,
             allowSessionTracking,
-            dataRetentionDays: Math.max(1, Math.min(365, dataRetentionDays)), // Clamp between 1 and 365 days
+            dataRetentionDays: Math.max(1, Math.min(365, dataRetentionDays)),
         };
 
         const allSettings = await readPrivacySettings();

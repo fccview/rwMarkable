@@ -16,7 +16,7 @@ export interface Checklist {
   isShared?: boolean;
 }
 
-export interface Document {
+export interface Note {
   id: string;
   title: string;
   content: string;
@@ -45,11 +45,12 @@ export interface User {
   isSuperAdmin?: boolean;
   createdAt?: string;
   lastLogin?: string;
+  apiKey?: string;
 }
 
 export interface SharedItem {
   id: string;
-  type: 'checklist' | 'document';
+  type: "checklist" | "document";
   title: string;
   owner: string;
   sharedWith: string[];
@@ -60,7 +61,7 @@ export interface SharedItem {
 
 export interface SharingMetadata {
   checklists: Record<string, SharedItem>;
-  documents: Record<string, SharedItem>;
+  notes: Record<string, SharedItem>;
 }
 
 export interface SharingPermissions {

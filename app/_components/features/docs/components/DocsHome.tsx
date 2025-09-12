@@ -2,12 +2,12 @@
 
 import { Plus, FileText, Clock, FolderOpen, BookOpen } from "lucide-react";
 import { Button } from "@/app/_components/ui/elements/button";
-import { Document, Category } from "@/app/_types";
+import { Note, Category } from "@/app/_types";
 import { StatsCard } from "@/app/_components/ui/elements/statsCard";
 import { formatRelativeTime } from "@/app/_utils/date-utils";
 
 interface DocsHomeViewProps {
-  docs: Document[];
+  docs: Note[];
   categories: Category[];
   onCreateModal: () => void;
   onSelectDoc: (id: string) => void;
@@ -46,14 +46,14 @@ export function DocsHomeView({
             <FileText className="h-10 w-10 text-muted-foreground" />
           </div>
           <h3 className="text-xl font-semibold text-foreground mb-2">
-            No documents yet
+            No notes yet
           </h3>
           <p className="text-muted-foreground mb-6 max-w-md text-center">
-            Create your first document to get started with your knowledge base.
+            Create your first note to get started with your knowledge base.
           </p>
           <Button onClick={onCreateModal} size="lg">
             <Plus className="h-5 w-5 mr-2" />
-            Create New Document
+            Create New Note
           </Button>
         </div>
       ) : (
@@ -61,15 +61,15 @@ export function DocsHomeView({
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
               <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-2">
-                Documents
+                Notes
               </h1>
               <p className="text-lg text-muted-foreground">
-                Your most recently updated documents
+                Your most recently updated notes
               </p>
             </div>
             <Button onClick={onCreateModal} size="lg">
               <Plus className="h-5 w-5 mr-2" />
-              New Document
+              New Note
             </Button>
           </div>
 
@@ -86,14 +86,14 @@ export function DocsHomeView({
             />
             <StatsCard
               icon={<BookOpen className="h-6 w-6 text-primary" />}
-              header="Documents"
+              header="Notes"
               value="Active"
             />
           </div>
 
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-foreground mb-4">
-              Recent Documents
+              Recent Notes
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {recentDocs.map((doc) => (
@@ -123,7 +123,7 @@ export function DocsHomeView({
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <FileText className="h-3 w-3" />
-                        <span>Document</span>
+                        <span>Note</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
@@ -139,7 +139,7 @@ export function DocsHomeView({
           {docs.length > 12 && (
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
-                Showing {recentDocs.length} of {docs.length} documents. Use the
+                Showing {recentDocs.length} of {docs.length} notes. Use the
                 sidebar to browse all or search above.
               </p>
             </div>

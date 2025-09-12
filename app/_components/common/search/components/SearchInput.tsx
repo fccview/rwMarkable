@@ -21,7 +21,7 @@ export function SearchInput({
   onClear,
   onFocus,
   onKeyDown,
-  placeholder = "Search checklists and documents...",
+  placeholder = "Search checklists and notes...",
   className,
   inputRef,
 }: SearchInputProps) {

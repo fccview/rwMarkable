@@ -31,7 +31,7 @@ export function SidebarActions({
           className="flex-1"
         >
           <Plus className="h-4 w-4 mr-2" />
-          New {mode === "checklists" ? "Checklist" : "Document"}
+          New {mode === "checklists" ? "Checklist" : "Note"}
         </Button>
         <Button
           onClick={onOpenCategoryModal}

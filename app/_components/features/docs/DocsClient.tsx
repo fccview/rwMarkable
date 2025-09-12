@@ -4,11 +4,11 @@ import { useState } from "react";
 import { DocsHomeView } from "@/app/_components/features/docs/components/DocsHome";
 import { DocEditor } from "@/app/_components/features/docs/components/DocEditor";
 import { EditDocModal } from "@/app/_components/ui/modals/document/EditDoc";
-import { Document, Category } from "@/app/_types";
+import { Note, Category } from "@/app/_types";
 import { useAppMode } from "@/app/_providers/AppModeProvider";
 
 interface DocsClientProps {
-  docs: Document[];
+  docs: Note[];
   categories: Category[];
   onDocDelete?: (deletedId: string) => void;
   onCreateModal: () => void;
@@ -21,16 +21,16 @@ export function DocsClient({
   onCreateModal,
 }: DocsClientProps) {
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingDoc, setEditingDoc] = useState<Document | null>(null);
-  const { selectedDocument, setSelectedDocument } = useAppMode();
+  const [editingDoc, setEditingDoc] = useState<Note | null>(null);
+  const { selectedNote, setSelectedNote } = useAppMode();
 
   const handleModalClose = async () => {
-    if (selectedDocument && editingDoc && selectedDocument === editingDoc.id) {
-      setSelectedDocument(null);
+    if (selectedNote && editingDoc && selectedNote === editingDoc.id) {
+      setSelectedNote(null);
     }
   };
 
-  const selectedDoc = docs.find((doc) => doc.id === selectedDocument);
+  const selectedDoc = docs.find((doc) => doc.id === selectedNote);
 
   return (
     <>
@@ -38,8 +38,8 @@ export function DocsClient({
         <DocEditor
           doc={selectedDoc}
           categories={categories}
-          onUpdate={() => {}}
-          onBack={() => setSelectedDocument(null)}
+          onUpdate={() => { }}
+          onBack={() => setSelectedNote(null)}
           onDelete={onDocDelete}
         />
       ) : (
@@ -47,7 +47,7 @@ export function DocsClient({
           docs={docs}
           categories={categories}
           onCreateModal={onCreateModal}
-          onSelectDoc={(id) => setSelectedDocument(id)}
+          onSelectDoc={(id) => setSelectedNote(id)}
         />
       )}
 

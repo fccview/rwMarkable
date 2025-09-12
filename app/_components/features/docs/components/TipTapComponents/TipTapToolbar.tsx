@@ -9,14 +9,20 @@ import {
   Quote,
   Link as LinkIcon,
   Square,
+  Image as ImageIcon,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/app/_components/ui/elements/button";
+import { ImageModal } from "@/app/_components/ui/modals/image/ImageModal";
+import { useState } from "react";
 
 type ToolbarProps = {
   editor: Editor | null;
 };
 
 export const TiptapToolbar = ({ editor }: ToolbarProps) => {
+  const [showImageModal, setShowImageModal] = useState(false);
+
   if (!editor) {
     return null;
   }
@@ -35,6 +41,17 @@ export const TiptapToolbar = ({ editor }: ToolbarProps) => {
 
   const setCodeBlock = () => {
     editor.chain().focus().toggleCodeBlock({ language: "javascript" }).run();
+  };
+
+  const addImage = () => {
+    const url = window.prompt("Image URL");
+    if (url) {
+      editor.chain().focus().setImage({ src: url }).run();
+    }
+  };
+
+  const handleImageSelect = (url: string) => {
+    editor.chain().focus().setImage({ src: url }).run();
   };
 
   const handleButtonClick = (command: () => void) => {
@@ -121,6 +138,31 @@ export const TiptapToolbar = ({ editor }: ToolbarProps) => {
       >
         <LinkIcon className="h-4 w-4" />
       </Button>
+      <div className="w-px h-6 bg-border mx-2" />
+      <Button
+        variant="ghost"
+        size="sm"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => handleButtonClick(addImage)}
+        title="Add image from URL"
+      >
+        <ImageIcon className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => setShowImageModal(true)}
+        title="Upload image"
+      >
+        <Upload className="h-4 w-4" />
+      </Button>
+      <ImageModal
+        isOpen={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        onSelectImage={handleImageSelect}
+        category=""
+      />
     </div>
   );
 };

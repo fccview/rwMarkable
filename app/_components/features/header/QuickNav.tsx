@@ -6,7 +6,7 @@ import { SearchBar } from "@/app/_components/common/search/SearchBar";
 import { useRouter } from "next/navigation";
 import { logout } from "@/app/_server/actions/auth/logout";
 import { useAppMode } from "@/app/_providers/AppModeProvider";
-import { Checklist, Document, AppMode } from "@/app/_types";
+import { Checklist, Note, AppMode } from "@/app/_types";
 
 interface HeaderProps {
   showSidebarToggle?: boolean;
@@ -14,9 +14,9 @@ interface HeaderProps {
   onOpenSettings?: () => void;
   isAdmin: boolean;
   checklists?: Checklist[];
-  docs?: Document[];
+  docs?: Note[];
   onSelectChecklist?: (id: string) => void;
-  onSelectDocument?: (id: string) => void;
+  onSelectNote?: (id: string) => void;
   onModeChange?: (mode: AppMode) => void;
 }
 
@@ -28,7 +28,7 @@ export function QuickNav({
   checklists = [],
   docs = [],
   onSelectChecklist,
-  onSelectDocument,
+  onSelectNote,
   onModeChange,
 }: HeaderProps) {
   const router = useRouter();
@@ -54,13 +54,13 @@ export function QuickNav({
         )}
 
         <div className="flex-1 min-w-0 max-w-lg mx-1 md:mx-4">
-          {onSelectChecklist && onSelectDocument && (
+          {onSelectChecklist && onSelectNote && (
             <SearchBar
               mode={mode}
               checklists={checklists}
               docs={docs}
               onSelectChecklist={onSelectChecklist}
-              onSelectDocument={onSelectDocument}
+              onSelectNote={onSelectNote}
               onModeChange={onModeChange}
             />
           )}

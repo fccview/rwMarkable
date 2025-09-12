@@ -51,14 +51,12 @@ export function CreateListModal({
     setIsLoading(true);
 
     try {
-      // Create new category if needed
       if (showNewCategory && newCategory.trim()) {
         const categoryFormData = new FormData();
         categoryFormData.append("name", newCategory.trim());
         await createCategoryAction(categoryFormData);
       }
 
-      // Create the checklist
       const formData = new FormData();
       formData.append("title", title.trim());
       formData.append(

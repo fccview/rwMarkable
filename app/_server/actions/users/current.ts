@@ -26,7 +26,6 @@ const SESSIONS_FILE = path.join(
   "sessions.json"
 );
 
-// Helper to read users file
 async function readUsers(): Promise<User[]> {
   try {
     const content = await fs.readFile(USERS_FILE, "utf-8");
@@ -36,7 +35,6 @@ async function readUsers(): Promise<User[]> {
   }
 }
 
-// Helper to read sessions
 async function readSessions(): Promise<Record<string, string>> {
   try {
     const content = await fs.readFile(SESSIONS_FILE, "utf-8");

@@ -104,8 +104,7 @@ export function DeleteAccountModal({
                 </h3>
                 <ul className="text-sm text-muted-foreground space-y-1">
                   <li>
-                    • All your checklists and documents will be permanently
-                    deleted
+                    • All your checklists and notes will be permanently deleted
                   </li>
                   <li>• All shared content will be removed</li>
                   <li>• Your account and session data will be erased</li>

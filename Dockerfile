@@ -41,6 +41,10 @@ RUN adduser --system --uid 1001 nextjs
 RUN mkdir -p /app/data/users /app/data/checklists && \
     chown -R nextjs:nodejs /app/data
 
+# Create .next cache directory with proper permissions
+RUN mkdir -p /app/.next/cache && \
+    chown -R nextjs:nodejs /app/.next
+
 # Copy public directory
 COPY --from=builder /app/public ./public
 

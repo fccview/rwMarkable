@@ -22,7 +22,7 @@ export function SidebarNavigation({
     },
     {
       id: "docs" as AppMode,
-      label: "Documents",
+      label: "Notes",
       icon: FileText,
     },
   ];

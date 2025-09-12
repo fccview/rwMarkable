@@ -56,7 +56,7 @@ function parseMarkdown(content: string): ChecklistItem[] {
     const trimmed = line.trim();
     if (trimmed.startsWith("- [ ] ") || trimmed.startsWith("- [x] ")) {
       const completed = trimmed.startsWith("- [x] ");
-      const text = trimmed.substring(6); // Remove "- [ ] " or "- [x] "
+      const text = trimmed.substring(6);
       items.push({
         id: `item-${index}`,
         text,
@@ -267,7 +267,6 @@ export async function updateChecklistTitle(
     throw new Error("Checklist file not found");
   }
 
-  // Read current content
   const content = await fs.readFile(currentFilePath, "utf-8");
   const lines = content.split("\n");
 

@@ -8,14 +8,14 @@ import {
   CheckSquare,
 } from "lucide-react";
 import { cn } from "@/app/_utils/utils";
-import { Checklist, Document } from "@/app/_types";
+import { Checklist, Note } from "@/app/_types";
 
 interface SharedItemsListProps {
-  items: (Checklist | Document)[];
+  items: (Checklist | Note)[];
   collapsed: boolean;
   onToggleCollapsed: () => void;
-  onItemClick: (item: Checklist | Document) => void;
-  isItemSelected: (item: Checklist | Document) => boolean;
+  onItemClick: (item: Checklist | Note) => void;
+  isItemSelected: (item: Checklist | Note) => boolean;
   mode: "checklists" | "docs";
 }
 

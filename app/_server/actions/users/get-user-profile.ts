@@ -1,7 +1,6 @@
 "use server";
 
 import { getCurrentUser } from "@/app/_server/actions/auth/utils";
-import { User } from "@/app/_types";
 import { Result } from "@/app/_types";
 
 type UserProfile = {
@@ -22,7 +21,6 @@ export async function getUserProfileAction(): Promise<Result<UserProfile>> {
             };
         }
 
-        // Return real user profile data
         const profile: UserProfile = {
             username: user.username,
             isAdmin: user.isAdmin,

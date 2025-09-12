@@ -1,6 +1,5 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { createHash } from "crypto";
 import { readUsers, writeUsers } from "@/app/_server/actions/auth/utils";
 import { User } from "@/app/_types";
@@ -18,7 +17,6 @@ export async function updateUserAction(
     const confirmPassword = formData.get("confirmPassword") as string;
     const isAdmin = formData.get("isAdmin") === "true";
 
-    // Validate input
     if (!username || !newUsername) {
       return {
         success: false,
@@ -54,7 +52,6 @@ export async function updateUserAction(
       };
     }
 
-    // Get existing users
     const existingUsers = await readUsers();
     const userIndex = existingUsers.findIndex(
       (user) => user.username === username
@@ -67,7 +64,6 @@ export async function updateUserAction(
       };
     }
 
-    // Check if new username already exists (if changing username)
     if (newUsername !== username) {
       const usernameExists = existingUsers.find(
         (user) => user.username === newUsername
@@ -80,14 +76,12 @@ export async function updateUserAction(
       }
     }
 
-    // Update user
     const updatedUser = {
       ...existingUsers[userIndex],
       username: newUsername,
       isAdmin,
     };
 
-    // Update password if provided
     if (password) {
       const hashedPassword = createHash("sha256")
         .update(password)
@@ -95,13 +89,10 @@ export async function updateUserAction(
       updatedUser.passwordHash = hashedPassword;
     }
 
-    // Update users array
     existingUsers[userIndex] = updatedUser;
 
-    // Write updated users to file
     await writeUsers(existingUsers);
 
-    // Return user without password
     const { passwordHash: _, ...userWithoutPassword } = updatedUser;
 
     return {

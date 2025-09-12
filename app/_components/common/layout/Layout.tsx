@@ -3,13 +3,13 @@
 import { useState, useContext } from "react";
 import { QuickNav } from "@/app/_components/features/header/QuickNav";
 import { Sidebar } from "./sidebar/Sidebar";
-import { Checklist, Category, Document } from "@/app/_types";
+import { Checklist, Category, Note } from "@/app/_types";
 import { ChecklistContext } from "@/app/_providers/ChecklistProvider";
 import { useAppMode } from "@/app/_providers/AppModeProvider";
 
 interface LayoutProps {
   lists: Checklist[];
-  docs?: Document[];
+  docs?: Note[];
   categories: Category[];
   onOpenSettings: () => void;
   onOpenCreateModal: (initialCategory?: string) => void;
@@ -36,14 +36,14 @@ export function Layout({
 }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { setSelectedChecklist } = useContext(ChecklistContext);
-  const { setSelectedDocument, setMode } = useAppMode();
+  const { setSelectedNote, setMode } = useAppMode();
 
   const handleSelectChecklist = (id: string) => {
     setSelectedChecklist(id);
   };
 
-  const handleSelectDocument = (id: string) => {
-    setSelectedDocument(id);
+  const handleSelectNote = (id: string) => {
+    setSelectedNote(id);
   };
 
   return (
@@ -71,7 +71,7 @@ export function Layout({
           checklists={lists}
           docs={docs || []}
           onSelectChecklist={handleSelectChecklist}
-          onSelectDocument={handleSelectDocument}
+          onSelectNote={handleSelectNote}
           onModeChange={setMode}
         />
 

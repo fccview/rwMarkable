@@ -15,8 +15,6 @@ interface Session {
   isCurrent: boolean;
 }
 
-// Session management using real session storage
-
 export async function getSessionsAction(): Promise<Result<Session[]>> {
   try {
     const currentUser = await getCurrentUser();
@@ -28,13 +26,10 @@ export async function getSessionsAction(): Promise<Result<Session[]>> {
       };
     }
 
-    // Get current session ID
     const sessionId = cookies().get("session")?.value;
 
-    // Get real sessions for the user
     const realSessions = await getSessionsForUser(currentUser.username);
 
-    // Convert to Session interface format and mark current session
     const sessions: Session[] = realSessions.map(session => ({
       id: session.id,
       username: session.username,
@@ -78,7 +73,6 @@ export async function terminateSessionAction(formData: FormData): Promise<Result
       };
     }
 
-    // Remove the session from storage
     await removeSession(sessionId);
 
     return {
@@ -105,10 +99,8 @@ export async function terminateAllOtherSessionsAction(): Promise<Result<null>> {
       };
     }
 
-    // Get current session ID
     const sessionId = cookies().get("session")?.value;
 
-    // Remove all other sessions for the user
     await removeAllSessionsForUser(currentUser.username, sessionId);
 
     return {

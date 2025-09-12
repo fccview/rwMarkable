@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChecklistItem } from "./ChecklistItem";
 import { ShareModal } from "@/app/_components/ui/modals/sharing/ShareModal";
 import {
@@ -9,6 +9,7 @@ import {
   updateItemAction,
   deleteItemAction,
   reorderItemsAction,
+  createBulkItemsAction,
 } from "@/app/_server/actions/data/actions";
 import {
   DndContext,
@@ -30,6 +31,7 @@ import { Checklist } from "@/app/_types";
 import { ChecklistHeader } from "./ChecklistHeader";
 import { ChecklistProgress } from "./ChecklistProgress";
 import { ChecklistForm } from "./ChecklistForm";
+import { BulkPasteModal } from "@/app/_components/ui/modals/bulk-paste/BulkPasteModal";
 
 interface ChecklistViewProps {
   list: Checklist;
@@ -48,10 +50,13 @@ export function ChecklistView({
 }: ChecklistViewProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showBulkPasteModal, setShowBulkPasteModal] = useState(false);
   const [localList, setLocalList] = useState(list);
+  const [focusKey, setFocusKey] = useState(0);
 
   useEffect(() => {
     setLocalList(list);
+    setFocusKey(prev => prev + 1);
   }, [list]);
 
   const sensors = useSensors(
@@ -97,22 +102,47 @@ export function ChecklistView({
       };
       setLocalList(updatedList);
       onUpdate(updatedList);
+      setFocusKey(prev => prev + 1);
+    }
+  };
+
+  const handleEditItem = async (itemId: string, text: string) => {
+    const formData = new FormData();
+    formData.append("listId", localList.id);
+    formData.append("itemId", itemId);
+    formData.append("text", text);
+    const result = await updateItemAction(formData);
+
+    if (result.success) {
+      const updatedList = {
+        ...localList,
+        items: localList.items.map((item) =>
+          item.id === itemId ? { ...item, text } : item
+        ),
+      };
+      setLocalList(updatedList);
+      onUpdate(updatedList);
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
+    const optimisticList = {
+      ...localList,
+      items: localList.items.filter((item) => item.id !== itemId),
+    };
+    setLocalList(optimisticList);
+    onUpdate(optimisticList);
+    setFocusKey(prev => prev + 1);
+
     const formData = new FormData();
     formData.append("listId", localList.id);
     formData.append("itemId", itemId);
     const result = await deleteItemAction(formData);
 
-    if (result.success) {
-      const updatedList = {
-        ...localList,
-        items: localList.items.filter((item) => item.id !== itemId),
-      };
-      setLocalList(updatedList);
-      onUpdate(updatedList);
+    if (!result.success) {
+      setLocalList(localList);
+      onUpdate(localList);
+      console.error("Failed to delete item:", result.error);
     }
   };
 
@@ -208,6 +238,24 @@ export function ChecklistView({
     }
   };
 
+  const handleBulkPaste = async (itemsText: string) => {
+    setIsLoading(true);
+    const formData = new FormData();
+    formData.append("listId", localList.id);
+    formData.append("itemsText", itemsText);
+    const result = await createBulkItemsAction(formData);
+    setIsLoading(false);
+
+    if (result.success && result.data) {
+      const updatedList = {
+        ...localList,
+        items: [...localList.items, ...result.data],
+      };
+      setLocalList(updatedList);
+      onUpdate(updatedList);
+    }
+  };
+
   const incompleteItems = localList.items.filter((item) => !item.completed);
   const completedItems = localList.items.filter((item) => item.completed);
   const totalCount = localList.items.length;
@@ -228,6 +276,7 @@ export function ChecklistView({
         <div className="max-w-4xl mx-auto space-y-4 lg:space-y-6 pb-20 lg:pb-0">
           <div className="bg-background rounded-lg border border-border p-4">
             <ChecklistForm
+              key={focusKey}
               onSubmit={async (text) => {
                 setIsLoading(true);
                 const formData = new FormData();
@@ -243,9 +292,12 @@ export function ChecklistView({
                   };
                   setLocalList(updatedList);
                   onUpdate(updatedList);
+                  setFocusKey((prev) => prev + 1);
                 }
               }}
+              onBulkSubmit={() => setShowBulkPasteModal(true)}
               isLoading={isLoading}
+              autoFocus={true}
             />
           </div>
 
@@ -269,12 +321,14 @@ export function ChecklistView({
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2">
-                    {incompleteItems.map((item) => (
+                    {incompleteItems.map((item, index) => (
                       <ChecklistItem
                         key={item.id}
                         item={item}
+                        index={index}
                         onToggle={handleToggleItem}
                         onDelete={handleDeleteItem}
+                        onEdit={handleEditItem}
                       />
                     ))}
                   </div>
@@ -303,12 +357,14 @@ export function ChecklistView({
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2">
-                    {completedItems.map((item) => (
+                    {completedItems.map((item, index) => (
                       <ChecklistItem
                         key={item.id}
                         item={item}
+                        index={incompleteItems.length + index}
                         onToggle={handleToggleItem}
                         onDelete={handleDeleteItem}
+                        onEdit={handleEditItem}
                         completed
                       />
                     ))}
@@ -343,6 +399,15 @@ export function ChecklistView({
           itemType="checklist"
           itemCategory={localList.category}
           itemOwner={localList.owner || ""}
+        />
+      )}
+
+      {showBulkPasteModal && (
+        <BulkPasteModal
+          isOpen={showBulkPasteModal}
+          onClose={() => setShowBulkPasteModal(false)}
+          onSubmit={handleBulkPaste}
+          isLoading={isLoading}
         />
       )}
     </div>

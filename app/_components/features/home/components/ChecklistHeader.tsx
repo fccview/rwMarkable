@@ -44,7 +44,12 @@ export function ChecklistHeader({
             </div>
             {checklist.category && checklist.category !== "Uncategorized" && (
               <p className="text-sm text-muted-foreground mt-1">
-                {checklist.category}
+                {checklist.category} • ID: {checklist.id}
+              </p>
+            )}
+            {(!checklist.category || checklist.category === "Uncategorized") && (
+              <p className="text-sm text-muted-foreground mt-1">
+                ID: {checklist.id}
               </p>
             )}
           </div>

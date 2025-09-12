@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "@/app/_utils/utils";
-import { Checklist, Document, AppMode } from "@/app/_types";
+import { Checklist, Note, AppMode } from "@/app/_types";
 import { SearchInput } from "./components/SearchInput";
 import { SearchResults } from "./components/SearchResults";
 
@@ -19,9 +19,9 @@ interface SearchResult {
 interface SearchBarProps {
   mode: AppMode;
   checklists: Checklist[];
-  docs: Document[];
+  docs: Note[];
   onSelectChecklist: (id: string) => void;
-  onSelectDocument: (id: string) => void;
+  onSelectNote: (id: string) => void;
   onModeChange?: (mode: AppMode) => void;
   className?: string;
 }
@@ -31,7 +31,7 @@ export function SearchBar({
   checklists,
   docs,
   onSelectChecklist,
-  onSelectDocument,
+  onSelectNote,
   onModeChange,
   className,
 }: SearchBarProps) {
@@ -166,7 +166,7 @@ export function SearchBar({
       if (mode === "checklists" && onModeChange) {
         onModeChange("docs");
       }
-      onSelectDocument(result.id);
+      onSelectNote(result.id);
     }
     setIsOpen(false);
     setQuery("");

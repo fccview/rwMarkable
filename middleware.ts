@@ -4,16 +4,17 @@ import type { NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const sessionId = request.cookies.get("session")?.value;
 
-  // Allow access to auth pages when not logged in
+  if (request.nextUrl.pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
+
   if (request.nextUrl.pathname.startsWith("/auth")) {
     if (sessionId) {
-      // Redirect to home if already logged in
       return NextResponse.redirect(new URL("/", request.url));
     }
     return NextResponse.next();
   }
 
-  // Check if user is logged in
   if (!sessionId) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }

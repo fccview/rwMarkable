@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import path from "path";
-import { Document, Category } from "@/app/_types";
+import { Note, Category } from "@/app/_types";
 import {
   getDocsUserDir,
   ensureDocsDir,
@@ -27,10 +27,10 @@ const parseMarkdownDoc = (
   owner?: string,
   isShared?: boolean,
   fileStats?: { birthtime: Date; mtime: Date }
-): Document => {
+): Note => {
   const lines = content.split("\n");
   const titleLine = lines.find((line) => line.startsWith("# "));
-  const title = titleLine?.replace(/^#\s*/, "") || "Untitled Document";
+  const title = titleLine?.replace(/^#\s*/, "") || "Untitled Note";
 
   const contentWithoutTitle = lines
     .filter((line) => !line.startsWith("# ") || line !== titleLine)
@@ -53,25 +53,34 @@ const parseMarkdownDoc = (
   };
 };
 
-const docToMarkdown = (doc: Document): string => {
+const docToMarkdown = (doc: Note): string => {
   const header = `# ${doc.title}`;
   const content = doc.content || "";
 
   return `${header}\n\n${content}`;
 };
 
-export const getDocs = async () => {
+export const getDocs = async (username?: string) => {
   try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return { success: false, error: "Not authenticated" };
-    }
+    let userDir: string;
+    let currentUser: any = null;
 
-    const userDir = await getDocsUserDir();
+    if (username) {
+      // API key authentication - use provided username
+      userDir = path.join(process.cwd(), "data", "docs", username);
+      currentUser = { username }; // Create a mock user object for API calls
+    } else {
+      // Session-based authentication
+      currentUser = await getCurrentUser();
+      if (!currentUser) {
+        return { success: false, error: "Not authenticated" };
+      }
+      userDir = await getDocsUserDir();
+    }
     await ensureDocsDir(userDir);
 
     const categories = await readDocsDir(userDir);
-    const docs: Document[] = [];
+    const docs: Note[] = [];
 
     for (const category of categories) {
       if (!category.isDirectory()) continue;
@@ -103,7 +112,7 @@ export const getDocs = async () => {
     }
 
     const sharedItems = await getItemsSharedWithUser(currentUser.username);
-    for (const sharedItem of sharedItems.documents) {
+    for (const sharedItem of sharedItems.notes) {
       try {
         const sharedFilePath = path.join(
           process.cwd(),
@@ -135,7 +144,7 @@ export const getDocs = async () => {
     return { success: true, data: docs };
   } catch (error) {
     console.error("Error in getDocs:", error);
-    return { success: false, error: "Failed to fetch documents" };
+    return { success: false, error: "Failed to fetch notes" };
   }
 };
 
@@ -178,7 +187,7 @@ export const createDocAction = async (formData: FormData) => {
     // Ensure the category directory exists
     await ensureDocsDir(categoryDir);
 
-    const newDoc: Document = {
+    const newDoc: Note = {
       id,
       title,
       content,
@@ -204,12 +213,12 @@ export const updateDocAction = async (formData: FormData) => {
 
     const docs = await getDocs();
     if (!docs.success || !docs.data) {
-      throw new Error(docs.error || "Failed to fetch documents");
+      throw new Error(docs.error || "Failed to fetch notes");
     }
 
     const doc = docs.data.find((d) => d.id === id);
     if (!doc) {
-      throw new Error("Document not found");
+      throw new Error("Note not found");
     }
 
     const updatedDoc = {
@@ -378,7 +387,7 @@ export const getAllDocs = async () => {
       return { success: false, error: "Not authenticated" };
     }
 
-    const allDocs: Document[] = [];
+    const allDocs: Note[] = [];
 
     const users = await readUsers();
 
@@ -426,6 +435,6 @@ export const getAllDocs = async () => {
     return { success: true, data: allDocs };
   } catch (error) {
     console.error("Error in getAllDocs:", error);
-    return { success: false, error: "Failed to fetch all documents" };
+    return { success: false, error: "Failed to fetch all notes" };
   }
 };

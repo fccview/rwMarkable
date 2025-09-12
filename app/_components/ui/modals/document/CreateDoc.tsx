@@ -8,12 +8,12 @@ import {
   createDocAction,
   createDocsCategoryAction,
 } from "@/app/_server/actions/data/docs-actions";
-import { Category, Document } from "@/app/_types";
+import { Category, Note } from "@/app/_types";
 import { Modal } from "../../elements/modal";
 
 interface CreateDocModalProps {
   onClose: () => void;
-  onCreated: (doc?: Document) => void;
+  onCreated: (doc?: Note) => void;
   categories: Category[];
   initialCategory?: string;
 }
@@ -46,14 +46,12 @@ export function CreateDocModal({
     setIsCreating(true);
 
     try {
-      // Create new category if needed
       if (showNewCategory && newCategory.trim()) {
         const categoryFormData = new FormData();
         categoryFormData.append("name", newCategory.trim());
         await createDocsCategoryAction(categoryFormData);
       }
 
-      // Create the document
       const formData = new FormData();
       formData.append("title", title.trim());
       formData.append(
@@ -76,7 +74,7 @@ export function CreateDocModal({
     <Modal
       isOpen={true}
       onClose={onClose}
-      title="Create New Document"
+      title="Create New Note"
       titleIcon={<FileText className="h-5 w-5 text-primary" />}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -93,7 +91,7 @@ export function CreateDocModal({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-            placeholder="Enter document title..."
+            placeholder="Enter note title..."
             autoFocus
             required
           />
@@ -160,7 +158,7 @@ export function CreateDocModal({
             disabled={!title.trim() || isCreating}
             className="flex-1"
           >
-            {isCreating ? "Creating..." : "Create Document"}
+            {isCreating ? "Creating..." : "Create Note"}
           </Button>
         </div>
       </form>

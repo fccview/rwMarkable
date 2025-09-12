@@ -38,7 +38,6 @@ export function EditChecklistModal({
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
 
-  // Check if current user is the owner
   useEffect(() => {
     const checkOwnership = async () => {
       try {
@@ -52,7 +51,6 @@ export function EditChecklistModal({
     checkOwnership();
   }, [checklist.owner]);
 
-  // Format categories for the dropdown
   const categoryOptions = [
     { id: "", name: "Uncategorized", icon: ListTodo },
     ...categories.map((cat) => ({
@@ -70,7 +68,6 @@ export function EditChecklistModal({
     const formData = new FormData();
     formData.append("id", checklist.id);
     formData.append("title", title.trim());
-    // Only include category if user is owner
     if (isOwner) {
       formData.append("category", category || "");
     }
@@ -105,7 +102,6 @@ export function EditChecklistModal({
           />
         </div>
 
-        {/* Only show category dropdown if user is owner */}
         {isOwner && (
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">

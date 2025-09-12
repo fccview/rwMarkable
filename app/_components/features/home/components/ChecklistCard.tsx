@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Trash2, Plus } from "lucide-react"
 import { deleteListAction, createItemAction, updateItemAction, deleteItemAction } from "@/app/_server/actions/data/actions"
 import { Button } from "@/app/_components/ui/elements/button"
@@ -28,6 +28,8 @@ interface ChecklistCardProps {
 export function ChecklistCard({ list, onUpdate }: ChecklistCardProps) {
   const [newItemText, setNewItemText] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [shouldFocus, setShouldFocus] = useState(true)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,9 +44,17 @@ export function ChecklistCard({ list, onUpdate }: ChecklistCardProps) {
 
     if (result.success) {
       setNewItemText("")
+      setShouldFocus(true)
       onUpdate?.()
     }
   }
+
+  useEffect(() => {
+    if (shouldFocus && inputRef.current) {
+      inputRef.current.focus()
+      setShouldFocus(false)
+    }
+  }, [shouldFocus])
 
   const handleDeleteList = async () => {
     if (confirm("Are you sure you want to delete this list?")) {
@@ -62,6 +72,7 @@ export function ChecklistCard({ list, onUpdate }: ChecklistCardProps) {
     formData.append('itemId', itemId)
     formData.append('completed', String(completed))
     await updateItemAction(formData)
+    setShouldFocus(true)
     onUpdate?.()
   }
 
@@ -70,6 +81,7 @@ export function ChecklistCard({ list, onUpdate }: ChecklistCardProps) {
     formData.append('listId', list.id)
     formData.append('itemId', itemId)
     await deleteItemAction(formData)
+    setShouldFocus(true)
     onUpdate?.()
   }
 
@@ -91,10 +103,11 @@ export function ChecklistCard({ list, onUpdate }: ChecklistCardProps) {
       </div>
 
       <div className="space-y-2 mb-4">
-        {incompleteItems.map((item) => (
+        {incompleteItems.map((item, index) => (
           <ChecklistItem
             key={item.id}
             item={item}
+            index={index}
             onToggle={handleToggleItem}
             onDelete={handleDeleteItem}
           />
@@ -105,10 +118,11 @@ export function ChecklistCard({ list, onUpdate }: ChecklistCardProps) {
         <div className="border-t border-border pt-4 mb-4">
           <h4 className="text-sm font-medium text-muted-foreground mb-2">Completed</h4>
           <div className="space-y-2">
-            {completedItems.map((item) => (
+            {completedItems.map((item, index) => (
               <ChecklistItem
                 key={item.id}
                 item={item}
+                index={incompleteItems.length + index}
                 onToggle={handleToggleItem}
                 onDelete={handleDeleteItem}
                 completed
@@ -120,6 +134,7 @@ export function ChecklistCard({ list, onUpdate }: ChecklistCardProps) {
 
       <form onSubmit={handleCreateItem} className="flex gap-2">
         <input
+          ref={inputRef}
           type="text"
           value={newItemText}
           onChange={(e) => setNewItemText(e.target.value)}

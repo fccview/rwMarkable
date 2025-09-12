@@ -1,6 +1,5 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { createHash } from "crypto";
 import { readUsers, writeUsers } from "@/app/_server/actions/auth/utils";
 import { User } from "@/app/_types";
@@ -17,7 +16,6 @@ export async function createUserAction(
     const confirmPassword = formData.get("confirmPassword") as string;
     const isAdmin = formData.get("isAdmin") === "true";
 
-    // Validate input
     if (!username || !password || !confirmPassword) {
       return {
         success: false,
@@ -46,7 +44,6 @@ export async function createUserAction(
       };
     }
 
-    // Check if user already exists
     const existingUsers = await readUsers();
     const userExists = existingUsers.find((user) => user.username === username);
 
@@ -57,10 +54,8 @@ export async function createUserAction(
       };
     }
 
-    // Hash password
     const hashedPassword = createHash("sha256").update(password).digest("hex");
 
-    // Create new user
     const newUser: User = {
       username,
       passwordHash: hashedPassword,
@@ -69,13 +64,10 @@ export async function createUserAction(
       lastLogin: new Date().toISOString(),
     };
 
-    // Add user to users array
     const updatedUsers = [...existingUsers, newUser];
 
-    // Write updated users to file
     await writeUsers(updatedUsers);
 
-    // Return user without password hash
     const { passwordHash: _, ...userWithoutPassword } = newUser;
 
     return {

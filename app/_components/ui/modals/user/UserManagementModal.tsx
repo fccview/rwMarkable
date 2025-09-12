@@ -49,7 +49,7 @@ export function UserManagementModal({
       if (mode === "edit" && user) {
         setUsername(user.username);
         setIsAdmin(user.isAdmin);
-        setPassword(""); // Don't show current password
+        setPassword("");
         setConfirmPassword("");
         setChangePassword(false);
       } else {

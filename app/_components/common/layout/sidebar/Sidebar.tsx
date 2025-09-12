@@ -15,7 +15,7 @@ import { DeleteCategoryModal } from "@/app/_components/ui/modals/category/Delete
 import { RenameCategoryModal } from "@/app/_components/ui/modals/category/RenameCategory";
 import { Logo } from "@/app/_components/ui/icons/logo";
 import { SettingsModal } from "@/app/_components/ui/modals/settings/Settings";
-import { Checklist, Category, Document, AppMode } from "@/app/_types";
+import { Checklist, Category, Note, AppMode } from "@/app/_types";
 import { ChecklistContext } from "../../../../_providers/ChecklistProvider";
 import { useAppMode } from "../../../../_providers/AppModeProvider";
 import { SidebarNavigation } from "./components/SidebarNavigation";
@@ -30,7 +30,7 @@ interface SidebarProps {
   onOpenCategoryModal: () => void;
   categories: Category[];
   checklists: Checklist[];
-  docs?: Document[];
+  docs?: Note[];
   username: string;
   isAdmin: boolean;
   onCategoryDeleted?: (categoryName: string) => void;
@@ -62,7 +62,7 @@ export function Sidebar({
 
   const { selectedChecklist, setSelectedChecklist } =
     useContext(ChecklistContext);
-  const { mode, setMode, selectedDocument, setSelectedDocument } = useAppMode();
+  const { mode, setMode, selectedNote, setSelectedNote } = useAppMode();
 
   const handleDeleteCategory = (categoryName: string) => {
     setCategoryToDelete(categoryName);
@@ -135,23 +135,23 @@ export function Sidebar({
   const handleModeSwitch = (newMode: AppMode) => {
     setMode(newMode);
     setSelectedChecklist(null);
-    setSelectedDocument(null);
+    setSelectedNote(null);
   };
 
-  const handleItemClick = (item: Checklist | Document) => {
+  const handleItemClick = (item: Checklist | Note) => {
     if (mode === "docs") {
-      setSelectedDocument(item.id);
+      setSelectedNote(item.id);
       setSelectedChecklist(null);
     } else {
       setSelectedChecklist(item.id);
-      setSelectedDocument(null);
+      setSelectedNote(null);
     }
     onClose();
   };
 
-  const isItemSelected = (item: Checklist | Document) => {
+  const isItemSelected = (item: Checklist | Note) => {
     return mode === "docs"
-      ? selectedDocument === item.id
+      ? selectedNote === item.id
       : selectedChecklist === item.id;
   };
 

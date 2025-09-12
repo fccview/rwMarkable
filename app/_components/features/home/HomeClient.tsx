@@ -11,7 +11,7 @@ import { EditChecklistModal } from "@/app/_components/ui/modals/checklist/EditCh
 import { SettingsModal } from "@/app/_components/ui/modals/settings/Settings";
 import { Layout } from "@/app/_components/common/layout/Layout";
 import { getHashFromUrl, setHashInUrl } from "@/app/_utils/url-utils";
-import { Checklist, Category, Document } from "@/app/_types";
+import { Checklist, Category, Note } from "@/app/_types";
 import { ChecklistContext } from "@/app/_providers/ChecklistProvider";
 import { useAppMode } from "@/app/_providers/AppModeProvider";
 import { CreateDocModal } from "@/app/_components/ui/modals/document/CreateDoc";
@@ -19,7 +19,7 @@ import { CreateDocModal } from "@/app/_components/ui/modals/document/CreateDoc";
 interface HomeClientProps {
   initialLists: Checklist[];
   initialCategories: Category[];
-  initialDocs: Document[];
+  initialDocs: Note[];
   initialDocsCategories: Category[];
   username: string;
   isAdmin: boolean;
@@ -36,7 +36,7 @@ export function HomeClient({
   const router = useRouter();
   const [lists, setLists] = useState<Checklist[]>(initialLists);
   const [categories, setCategories] = useState<Category[]>(initialCategories);
-  const [docs, setDocs] = useState<Document[]>(initialDocs);
+  const [docs, setDocs] = useState<Note[]>(initialDocs);
   const [docsCategories, setDocsCategories] = useState<Category[]>(
     initialDocsCategories
   );
@@ -53,7 +53,7 @@ export function HomeClient({
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const { selectedChecklist, setSelectedChecklist } =
     useContext(ChecklistContext);
-  const { mode, selectedDocument, setSelectedDocument, setMode } = useAppMode();
+  const { mode, selectedNote, setSelectedNote, setMode } = useAppMode();
 
   useEffect(() => {
     const hash = getHashFromUrl();
@@ -61,12 +61,12 @@ export function HomeClient({
       if (mode === "checklists") {
         setSelectedChecklist(hash);
       } else if (mode === "docs") {
-        setSelectedDocument(hash);
+        setSelectedNote(hash);
       }
     }
     setIsInitialized(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+  }, []);
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -78,18 +78,18 @@ export function HomeClient({
 
       if (isDocId && mode !== "docs") {
         setMode("docs");
-        setSelectedDocument(hash);
+        setSelectedNote(hash);
         setSelectedChecklist(null);
       } else if (isChecklistId && mode !== "checklists") {
         setMode("checklists");
         setSelectedChecklist(hash);
-        setSelectedDocument(null);
+        setSelectedNote(null);
       } else if (isDocId && mode === "docs") {
-        setSelectedDocument(hash);
+        setSelectedNote(hash);
         setSelectedChecklist(null);
       } else if (isChecklistId && mode === "checklists") {
         setSelectedChecklist(hash);
-        setSelectedDocument(null);
+        setSelectedNote(null);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,10 +100,10 @@ export function HomeClient({
       if (mode === "checklists") {
         setHashInUrl(selectedChecklist);
       } else if (mode === "docs") {
-        setHashInUrl(selectedDocument);
+        setHashInUrl(selectedNote);
       }
     }
-  }, [selectedChecklist, selectedDocument, isInitialized, mode]);
+  }, [selectedChecklist, selectedNote, isInitialized, mode]);
 
   const handleOpenEditModal = (checklist: Checklist) => {
     setEditingChecklist(checklist);
@@ -209,7 +209,7 @@ export function HomeClient({
           categories={docsCategories}
           onDocDelete={(deletedId) => {
             setDocs((prev) => prev.filter((doc) => doc.id !== deletedId));
-            setSelectedDocument(null);
+            setSelectedNote(null);
             setHashInUrl("");
           }}
           onCreateModal={() => setShowCreateDocModal(true)}
@@ -306,7 +306,7 @@ export function HomeClient({
                   )
                 );
               }
-              setSelectedDocument(newDoc.id);
+              setSelectedNote(newDoc.id);
               setHashInUrl(newDoc.id);
             }
             setShowCreateDocModal(false);

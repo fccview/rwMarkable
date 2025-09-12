@@ -11,6 +11,7 @@ interface User {
   isSuperAdmin?: boolean;
   createdAt?: string;
   lastLogin?: string;
+  apiKey?: string;
 }
 
 const USERS_FILE = path.join(process.cwd(), "data", "users", "users.json");

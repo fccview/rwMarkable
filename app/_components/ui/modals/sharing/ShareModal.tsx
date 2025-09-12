@@ -38,12 +38,11 @@ export function ShareModal({
   const [currentSharing, setCurrentSharing] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Load users and current sharing status
   useEffect(() => {
     if (isOpen) {
       loadUsers();
       loadCurrentSharing();
-      setSearchQuery(""); // Clear search when modal opens
+      setSearchQuery("");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, itemId, itemOwner]);
@@ -158,7 +157,6 @@ export function ShareModal({
       formData.append("title", itemTitle);
       formData.append("category", itemCategory || "");
       formData.append("action", "unshare");
-      // No targetUsers means remove all sharing
 
       const result = await shareItemAction(formData);
 
@@ -183,7 +181,6 @@ export function ShareModal({
 
   const availableUsers = users.filter((user) => user.username !== itemOwner);
 
-  // Filter users based on search query
   const filteredUsers = availableUsers.filter((user) =>
     user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -223,7 +220,6 @@ export function ShareModal({
             Select users to share with
           </h4>
 
-          {/* Search input */}
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input

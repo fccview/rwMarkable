@@ -2,7 +2,7 @@
 
 import { Search, Plus, Edit3, Trash2, Shield, User } from "lucide-react";
 import { Button } from "@/app/_components/ui/elements/button";
-import { User as UserType } from "@/app/_types";
+import { User as UserType, Checklist, Note } from "@/app/_types";
 
 interface AdminUsersProps {
   users: UserType[];
@@ -11,6 +11,10 @@ interface AdminUsersProps {
   onAddUser: () => void;
   onEditUser: (user: UserType) => void;
   onDeleteUser: (user: UserType) => void;
+  allLists: Checklist[];
+  allDocs: Note[];
+  username: string;
+  deletingUser: string | null;
 }
 
 export function AdminUsers({
@@ -20,6 +24,10 @@ export function AdminUsers({
   onAddUser,
   onEditUser,
   onDeleteUser,
+  allLists,
+  allDocs,
+  username,
+  deletingUser,
 }: AdminUsersProps) {
   const filteredUsers = users.filter((user) =>
     user.username.toLowerCase().includes(searchQuery.toLowerCase())
@@ -54,56 +62,74 @@ export function AdminUsers({
       </div>
 
       <div className="space-y-3">
-        {filteredUsers.map((user) => (
-          <div
-            key={user.username}
-            className="bg-card border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
-                  <User className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-foreground">
-                      {user.username}
-                    </h3>
-                    {user.isAdmin && (
-                      <Shield className="h-4 w-4 text-primary" />
-                    )}
+        {filteredUsers.map((user) => {
+          const userChecklists = allLists.filter(
+            (list) => list.owner === user.username
+          ).length;
+          const userDocs = allDocs.filter(
+            (doc) => doc.owner === user.username
+          ).length;
+
+          return (
+            <div
+              key={user.username}
+              className="bg-card border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full">
+                    <User className="h-5 w-5 text-primary" />
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {user.isAdmin ? "Admin" : "User"} •{" "}
-                    {user.createdAt
-                      ? new Date(user.createdAt).toLocaleDateString()
-                      : "N/A"}
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-foreground">
+                        {user.username}
+                      </h3>
+                      {user.username === username && (
+                        <span className="px-2 py-1 text-xs bg-primary/10 text-primary rounded-full">
+                          You
+                        </span>
+                      )}
+                      {user.isAdmin && (
+                        <Shield className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {user.isAdmin ? "Admin" : "User"} • {userChecklists} checklists, {userDocs} notes
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onEditUser(user)}
-                  className="h-8 w-8 p-0"
-                  title="Edit User"
-                >
-                  <Edit3 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onDeleteUser(user)}
-                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                  title="Delete User"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEditUser(user)}
+                    className="h-8 w-8 p-0"
+                    title="Edit User"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                  </Button>
+                  {user.username !== username && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDeleteUser(user)}
+                      disabled={deletingUser === user.username}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      title="Delete User"
+                    >
+                      {deletingUser === user.username ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-destructive mx-auto"></div>
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {filteredUsers.length === 0 && (
           <div className="bg-card border border-border rounded-lg p-8 text-center">

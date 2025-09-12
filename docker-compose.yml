@@ -4,7 +4,7 @@ services:
     container_name: rwmarkable
     user: "1000:1000"
     ports:
-      - "1234:3000"
+      - "1122:3000"
     volumes:
       - ./data:/app/data:rw
       - ./config:/app/config:ro

@@ -2,6 +2,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import Image from "@tiptap/extension-image";
 import { common, createLowlight } from "lowlight";
 import { TiptapToolbar } from "./TipTapToolbar";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -13,9 +14,10 @@ import { Eye, FileText } from "lucide-react";
 type TiptapEditorProps = {
   content: string;
   onChange: (content: string, isMarkdownMode: boolean) => void;
+  category?: string;
 };
 
-export const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
+export const TiptapEditor = ({ content, onChange, category }: TiptapEditorProps) => {
   const [isMarkdownMode, setIsMarkdownMode] = useState(false);
   const [markdownContent, setMarkdownContent] = useState(content);
   const isInitialized = useRef(false);
@@ -44,6 +46,11 @@ export const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
       Link.configure({
         openOnClick: false,
         autolink: true,
+      }),
+      Image.configure({
+        HTMLAttributes: {
+          class: 'max-w-full h-auto rounded-lg',
+        },
       }),
     ],
     content: content,
@@ -108,33 +115,36 @@ export const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
     }
   };
 
+
   return (
     <div className="flex flex-col h-full">
       <div className="bg-background border-b border-border px-4 py-2 flex items-center justify-between">
-        <TiptapToolbar editor={editor} />
+        <div className="flex-1 min-w-0">
+          <TiptapToolbar editor={editor} />
+        </div>
         <Button
           variant="ghost"
           size="sm"
           onMouseDown={(e) => e.preventDefault()}
           onClick={toggleMode}
-          className="ml-2"
+          className="ml-2 flex-shrink-0"
         >
           {isMarkdownMode ? (
             <>
               <Eye className="h-4 w-4 mr-2" />
-              Preview
+              <span className="hidden sm:inline">Preview</span>
             </>
           ) : (
             <>
               <FileText className="h-4 w-4 mr-2" />
-              Markdown
+              <span className="hidden sm:inline">Markdown</span>
             </>
           )}
         </Button>
       </div>
 
       {isMarkdownMode ? (
-        <div className="flex-1 flex">
+        <div className="flex-1 flex flex-col md:flex-row">
           <div className="flex-1 p-4">
             <textarea
               value={markdownContent}
@@ -143,7 +153,7 @@ export const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
               placeholder="Write your markdown here..."
             />
           </div>
-          <div className="flex-1 p-4 border-l border-border overflow-y-auto">
+          <div className="flex-1 p-4 border-t md:border-t-0 md:border-l border-border overflow-y-auto">
             <div
               className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl dark:prose-invert [&_ul]:list-disc [&_ol]:list-decimal"
               dangerouslySetInnerHTML={{ __html: marked.parse(markdownContent) }}
@@ -151,7 +161,17 @@ export const TiptapEditor = ({ content, onChange }: TiptapEditorProps) => {
           </div>
         </div>
       ) : (
-        <EditorContent editor={editor} className="flex-1 overflow-y-auto" />
+        <div
+          className="flex-1 overflow-y-auto"
+          onClick={(e) => {
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'A') {
+              e.preventDefault();
+            }
+          }}
+        >
+          <EditorContent editor={editor} />
+        </div>
       )}
     </div>
   );

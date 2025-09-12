@@ -8,12 +8,10 @@ import { User } from "@/app/_types";
 
 const USERS_FILE = path.join(process.cwd(), "data", "users", "users.json");
 
-// Helper to hash passwords consistently
 function hashPassword(password: string): string {
   return createHash("sha256").update(password).digest("hex");
 }
 
-// Helper to read users file
 async function readUsers(): Promise<User[]> {
   try {
     const content = await fs.readFile(USERS_FILE, "utf-8");
@@ -23,13 +21,11 @@ async function readUsers(): Promise<User[]> {
   }
 }
 
-// Helper to write users file
 async function writeUsers(users: User[]) {
   await fs.mkdir(path.dirname(USERS_FILE), { recursive: true });
   await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
 }
 
-// Get current user from session
 async function getCurrentUser(): Promise<User | null> {
   const sessionId = cookies().get("session")?.value;
   if (!sessionId) return null;
@@ -70,7 +66,6 @@ export async function createUser(formData: FormData) {
   users.push(newUser);
   await writeUsers(users);
 
-  // Create user's checklist directory
   const userChecklistDir = path.join(
     process.cwd(),
     "data",
@@ -120,7 +115,6 @@ export async function getUsers() {
   }));
 }
 
-// Helper to read sessions
 async function readSessions(): Promise<Record<string, string>> {
   try {
     const content = await fs.readFile(

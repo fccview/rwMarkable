@@ -42,8 +42,7 @@ export function DeleteCategoryModal({
           &quot;?
           <br /> <br />
           <span className="text-destructive">
-            This WILL delete all documents in this category and cannot be
-            undone.
+            This WILL delete all notes in this category and cannot be undone.
           </span>
         </p>
 

@@ -24,7 +24,7 @@ export async function readSharingMetadata(): Promise<SharingMetadata> {
   } catch (error) {
     return {
       checklists: {},
-      documents: {},
+      notes: {},
     };
   }
 }
@@ -75,7 +75,7 @@ export async function addSharedItem(
   if (type === "checklist") {
     metadata.checklists[sharingId] = sharedItem;
   } else {
-    metadata.documents[sharingId] = sharedItem;
+    metadata.notes[sharingId] = sharedItem;
   }
 
   await writeSharingMetadata(metadata);
@@ -92,7 +92,7 @@ export async function removeSharedItem(
   if (type === "checklist") {
     delete metadata.checklists[sharingId];
   } else {
-    delete metadata.documents[sharingId];
+    delete metadata.notes[sharingId];
   }
 
   await writeSharingMetadata(metadata);
@@ -115,9 +115,9 @@ export async function updateSharedItem(
       };
     }
   } else {
-    if (metadata.documents[sharingId]) {
-      metadata.documents[sharingId] = {
-        ...metadata.documents[sharingId],
+    if (metadata.notes[sharingId]) {
+      metadata.notes[sharingId] = {
+        ...metadata.notes[sharingId],
         ...updates,
       };
     }
@@ -128,7 +128,7 @@ export async function updateSharedItem(
 
 export async function getItemsSharedWithUser(username: string): Promise<{
   checklists: SharedItem[];
-  documents: SharedItem[];
+  notes: SharedItem[];
 }> {
   const metadata = await readSharingMetadata();
 
@@ -136,19 +136,19 @@ export async function getItemsSharedWithUser(username: string): Promise<{
     item.sharedWith.includes(username)
   );
 
-  const sharedDocuments = Object.values(metadata.documents).filter((item) =>
+  const sharedNotes = Object.values(metadata.notes).filter((item) =>
     item.sharedWith.includes(username)
   );
 
   return {
     checklists: sharedChecklists,
-    documents: sharedDocuments,
+    notes: sharedNotes,
   };
 }
 
 export async function getItemsSharedByUser(username: string): Promise<{
   checklists: SharedItem[];
-  documents: SharedItem[];
+  notes: SharedItem[];
 }> {
   const metadata = await readSharingMetadata();
 
@@ -156,13 +156,13 @@ export async function getItemsSharedByUser(username: string): Promise<{
     (item) => item.owner === username
   );
 
-  const sharedDocuments = Object.values(metadata.documents).filter(
+  const sharedNotes = Object.values(metadata.notes).filter(
     (item) => item.owner === username
   );
 
   return {
     checklists: sharedChecklists,
-    documents: sharedDocuments,
+    notes: sharedNotes,
   };
 }
 
@@ -180,9 +180,7 @@ export async function isItemSharedWithUser(
       metadata.checklists[sharingId]?.sharedWith.includes(username) || false
     );
   } else {
-    return (
-      metadata.documents[sharingId]?.sharedWith.includes(username) || false
-    );
+    return metadata.notes[sharingId]?.sharedWith.includes(username) || false;
   }
 }
 
@@ -197,6 +195,6 @@ export async function getItemSharingMetadata(
   if (type === "checklist") {
     return metadata.checklists[sharingId] || null;
   } else {
-    return metadata.documents[sharingId] || null;
+    return metadata.notes[sharingId] || null;
   }
 }

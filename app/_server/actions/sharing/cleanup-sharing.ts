@@ -8,7 +8,7 @@ import { Result } from "@/app/_types";
 export async function cleanupSharingMetadataAction(): Promise<
   Result<{
     removedChecklists: number;
-    removedDocuments: number;
+    removedNotes: number;
   }>
 > {
   try {
@@ -29,10 +29,10 @@ export async function cleanupSharingMetadataAction(): Promise<
     }
 
     const existingChecklistIds = new Set(allLists.data.map((list) => list.id));
-    const existingDocumentIds = new Set(allDocs.data.map((doc) => doc.id));
+    const existingNoteIds = new Set(allDocs.data.map((doc) => doc.id));
 
     let removedChecklists = 0;
-    let removedDocuments = 0;
+    let removedNotes = 0;
 
     const checklistsToRemove: string[] = [];
     for (const [id, sharedItem] of Object.entries(metadata.checklists)) {
@@ -42,11 +42,11 @@ export async function cleanupSharingMetadataAction(): Promise<
       }
     }
 
-    const documentsToRemove: string[] = [];
-    for (const [id, sharedItem] of Object.entries(metadata.documents)) {
-      if (!existingDocumentIds.has(id)) {
-        documentsToRemove.push(id);
-        removedDocuments++;
+    const notesToRemove: string[] = [];
+    for (const [id, sharedItem] of Object.entries(metadata.notes)) {
+      if (!existingNoteIds.has(id)) {
+        notesToRemove.push(id);
+        removedNotes++;
       }
     }
 
@@ -54,8 +54,8 @@ export async function cleanupSharingMetadataAction(): Promise<
       delete metadata.checklists[id];
     }
 
-    for (const id of documentsToRemove) {
-      delete metadata.documents[id];
+    for (const id of notesToRemove) {
+      delete metadata.notes[id];
     }
 
     await writeSharingMetadata(metadata);
@@ -64,7 +64,7 @@ export async function cleanupSharingMetadataAction(): Promise<
       success: true,
       data: {
         removedChecklists,
-        removedDocuments,
+        removedNotes,
       },
     };
   } catch (error) {
@@ -79,9 +79,9 @@ export async function cleanupSharingMetadataAction(): Promise<
 export async function validateSharingMetadataAction(): Promise<
   Result<{
     validChecklists: number;
-    validDocuments: number;
+    validNotes: number;
     orphanedChecklists: number;
-    orphanedDocuments: number;
+    orphanedNotes: number;
   }>
 > {
   try {
@@ -102,12 +102,12 @@ export async function validateSharingMetadataAction(): Promise<
     }
 
     const existingChecklistIds = new Set(allLists.data.map((list) => list.id));
-    const existingDocumentIds = new Set(allDocs.data.map((doc) => doc.id));
+    const existingNoteIds = new Set(allDocs.data.map((doc) => doc.id));
 
     let validChecklists = 0;
-    let validDocuments = 0;
+    let validNotes = 0;
     let orphanedChecklists = 0;
-    let orphanedDocuments = 0;
+    let orphanedNotes = 0;
 
     for (const [id, sharedItem] of Object.entries(metadata.checklists)) {
       if (existingChecklistIds.has(id)) {
@@ -117,11 +117,11 @@ export async function validateSharingMetadataAction(): Promise<
       }
     }
 
-    for (const [id, sharedItem] of Object.entries(metadata.documents)) {
-      if (existingDocumentIds.has(id)) {
-        validDocuments++;
+    for (const [id, sharedItem] of Object.entries(metadata.notes)) {
+      if (existingNoteIds.has(id)) {
+        validNotes++;
       } else {
-        orphanedDocuments++;
+        orphanedNotes++;
       }
     }
 
@@ -129,9 +129,9 @@ export async function validateSharingMetadataAction(): Promise<
       success: true,
       data: {
         validChecklists,
-        validDocuments,
+        validNotes,
         orphanedChecklists,
-        orphanedDocuments,
+        orphanedNotes,
       },
     };
   } catch (error) {

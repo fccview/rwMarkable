@@ -1,4 +1,3 @@
-// app/_components/_FeatureComponents/DocsPage/ActiveViews/DocEditor.tsx
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -15,11 +14,13 @@ import {
   Folder,
   Share2,
   Users,
+  Download,
 } from "lucide-react";
 import { Button } from "@/app/_components/ui/elements/button";
 import { Dropdown } from "@/app/_components/ui/elements/dropdown";
 import { ShareModal } from "@/app/_components/ui/modals/sharing/ShareModal";
-import { Document, Category } from "@/app/_types";
+import { Note, Category } from "@/app/_types";
+import { exportToPDF } from "@/app/_utils/pdf-export";
 import {
   updateDocAction,
   deleteDocAction,
@@ -27,7 +28,7 @@ import {
 import { getCurrentUser } from "@/app/_server/actions/users/current";
 
 interface DocEditorProps {
-  doc: Document;
+  doc: Note;
   categories: Category[];
   onUpdate: () => void;
   onBack: () => void;
@@ -52,7 +53,15 @@ export function DocEditor({
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [isOwner, setIsOwner] = useState(false);
 
-  const turndownService = useMemo(() => new TurndownService(), []);
+  const turndownService = useMemo(() => {
+    const service = new TurndownService({
+      headingStyle: "atx",
+      codeBlockStyle: "fenced",
+      emDelimiter: "*",
+      bulletListMarker: "-",
+    });
+    return service;
+  }, []);
 
   const categoryOptions = [
     { id: "", name: "Uncategorized", icon: FolderOpen },
@@ -100,7 +109,10 @@ export function DocEditor({
     setIsEditing(true);
   };
 
-  const handleEditorContentChange = (content: string, isMarkdownMode: boolean) => {
+  const handleEditorContentChange = (
+    content: string,
+    isMarkdownMode: boolean
+  ) => {
     setEditorContent(content);
     setIsEditorInMarkdownMode(isMarkdownMode);
   };
@@ -153,6 +165,19 @@ export function DocEditor({
     }
   };
 
+  const handleExportPDF = async () => {
+    try {
+      const element = document.querySelector('.prose');
+      if (!element) return;
+
+      const filename = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      await exportToPDF(element as HTMLElement, filename);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Failed to export PDF');
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-background h-full">
       <div className="bg-background border-b border-border px-4 lg:px-6 py-4">
@@ -175,7 +200,7 @@ export function DocEditor({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="text-lg lg:text-xl font-bold bg-transparent border-none outline-none focus:ring-0 text-foreground w-full px-0"
-                    placeholder="Document title..."
+                    placeholder="Note title..."
                   />
                 </div>
               ) : (
@@ -235,6 +260,15 @@ export function DocEditor({
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={handleExportPDF}
+                  className="h-8 w-8 lg:h-10 lg:w-10 p-0"
+                  title="Export as PDF"
+                >
+                  <Download className="h-4 w-4 lg:h-5 lg:w-5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleEdit}
                   className="h-8 w-8 lg:h-10 lg:w-10 p-0"
                 >
@@ -273,11 +307,22 @@ export function DocEditor({
           <TiptapEditor
             content={editorContent}
             onChange={handleEditorContentChange}
+            category={category}
           />
         ) : (
           <div
             className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl p-6 focus:outline-none dark:prose-invert [&_ul]:list-disc [&_ol]:list-decimal"
             dangerouslySetInnerHTML={{ __html: marked.parse(docContent) }}
+            onClick={(e) => {
+              const target = e.target as HTMLElement;
+              if (target.tagName === 'A') {
+                e.preventDefault();
+                const href = target.getAttribute('href');
+                if (href) {
+                  window.open(href, '_blank', 'noopener,noreferrer');
+                }
+              }
+            }}
           />
         )}
       </div>

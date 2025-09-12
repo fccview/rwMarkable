@@ -6,6 +6,8 @@ import {
 import { HomeClient } from "@/app/_components/features/home/HomeClient";
 import { isAdmin, getUsername } from "@/app/_server/actions/auth/utils";
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   const [listsResult, categoriesResult, docsResult, docsCategoriesResult] =
     await Promise.all([

@@ -12,15 +12,15 @@ import { AppMode } from "@/app/_types";
 interface AppModeContextType {
   mode: AppMode;
   setMode: (mode: AppMode) => void;
-  selectedDocument: string | null;
-  setSelectedDocument: (id: string | null) => void;
+  selectedNote: string | null;
+  setSelectedNote: (id: string | null) => void;
 }
 
 const AppModeContext = createContext<AppModeContextType | undefined>(undefined);
 
 export function AppModeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<AppMode>("checklists");
-  const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
+  const [selectedNote, setSelectedNote] = useState<string | null>(null);
 
   useEffect(() => {
     const savedMode = localStorage.getItem("app-mode");
@@ -39,8 +39,8 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
       value={{
         mode,
         setMode: handleSetMode,
-        selectedDocument,
-        setSelectedDocument,
+        selectedNote,
+        setSelectedNote,
       }}
     >
       {children}

@@ -19,7 +19,6 @@ export async function updateProfileAction(formData: FormData): Promise<Result<nu
         const currentPassword = formData.get("currentPassword") as string;
         const newPassword = formData.get("newPassword") as string;
 
-        // Validate input
         if (!newUsername || newUsername.length < 3) {
             return {
                 success: false,
@@ -34,7 +33,6 @@ export async function updateProfileAction(formData: FormData): Promise<Result<nu
             };
         }
 
-        // Get all users
         const users = await readUsers();
         const userIndex = users.findIndex((user) => user.username === currentUser.username);
 
@@ -45,7 +43,6 @@ export async function updateProfileAction(formData: FormData): Promise<Result<nu
             };
         }
 
-        // Check if new username already exists (if changing username)
         if (newUsername !== currentUser.username) {
             const usernameExists = users.find((user) => user.username === newUsername);
             if (usernameExists) {
@@ -56,7 +53,6 @@ export async function updateProfileAction(formData: FormData): Promise<Result<nu
             }
         }
 
-        // Verify current password if changing password
         if (newPassword) {
             if (!currentPassword) {
                 return {
@@ -74,7 +70,6 @@ export async function updateProfileAction(formData: FormData): Promise<Result<nu
             }
         }
 
-        // Update user
         users[userIndex].username = newUsername;
 
         if (newPassword) {
@@ -82,7 +77,6 @@ export async function updateProfileAction(formData: FormData): Promise<Result<nu
             users[userIndex].passwordHash = newPasswordHash;
         }
 
-        // Write updated users to file
         await writeUsers(users);
 
         return {
