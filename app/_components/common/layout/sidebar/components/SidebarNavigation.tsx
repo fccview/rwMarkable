@@ -21,7 +21,7 @@ export function SidebarNavigation({
       icon: CheckSquare,
     },
     {
-      id: "docs" as AppMode,
+      id: "notes" as AppMode,
       label: "Notes",
       icon: FileText,
     },

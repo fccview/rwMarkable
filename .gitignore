@@ -41,6 +41,6 @@ next-env.d.ts
 
 # docker
 .dockerignore 
-data
+/data
 
 *.test.yml

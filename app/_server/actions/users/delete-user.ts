@@ -5,6 +5,9 @@ import { Result } from "@/app/_types";
 import fs from "fs/promises";
 import path from "path";
 
+const USER_NOTES_DIR = (username: string) =>
+  path.join(process.cwd(), "data", "notes", username);
+
 export async function deleteUserAction(
   formData: FormData
 ): Promise<Result<null>> {
@@ -51,7 +54,7 @@ export async function deleteUserAction(
       );
       await fs.rm(checklistsDir, { recursive: true, force: true });
 
-      const docsDir = path.join(process.cwd(), "data", "docs", username);
+      const docsDir = USER_NOTES_DIR(username);
       await fs.rm(docsDir, { recursive: true, force: true });
     } catch (error) {
       console.warn("Warning: Could not clean up user data files:", error);

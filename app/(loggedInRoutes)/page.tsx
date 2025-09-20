@@ -2,11 +2,11 @@ import { getLists, getCategories } from "@/app/_server/actions/data/actions";
 import {
   getDocs,
   getDocsCategories,
-} from "@/app/_server/actions/data/docs-actions";
+} from "@/app/_server/actions/data/notes-actions";
 import { HomeClient } from "@/app/_components/features/home/HomeClient";
 import { isAdmin, getUsername } from "@/app/_server/actions/auth/utils";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [listsResult, categoriesResult, docsResult, docsCategoriesResult] =

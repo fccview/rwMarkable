@@ -7,6 +7,7 @@ import { User as UserType } from "@/app/_types";
 import { getUserProfileAction } from "@/app/_server/actions/users/get-user-profile";
 import { exportUserDataAction } from "@/app/_server/actions/users/export-data";
 import { useRouter } from "next/navigation";
+import { useNavigationGuard } from "@/app/_providers/NavigationGuardProvider";
 import { DeleteAccountModal } from "@/app/_components/ui/modals/user/DeleteAccountModal";
 import { PrivacySettingsModal } from "@/app/_components/ui/modals/user/PrivacySettingsModal";
 import { ProfileTab } from "./components/ProfileTab";
@@ -23,6 +24,7 @@ export function UserProfileClient({
   isAdmin,
 }: UserProfileClientProps) {
   const router = useRouter();
+  const { checkNavigation } = useNavigationGuard();
   const [user, setUser] = useState<UserType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -77,9 +79,8 @@ export function UserProfileClient({
         const url = URL.createObjectURL(dataBlob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `user-data-${username}-${
-          new Date().toISOString().split("T")[0]
-        }.json`;
+        link.download = `user-data-${username}-${new Date().toISOString().split("T")[0]
+          }.json`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -113,7 +114,7 @@ export function UserProfileClient({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/")}
+            onClick={() => checkNavigation(() => router.push("/"))}
             className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -139,11 +140,10 @@ export function UserProfileClient({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors whitespace-nowrap flex-shrink-0 ${activeTab === tab.id
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
-                }`}
+                  }`}
               >
                 <Icon className="h-4 w-4" />
                 {tab.label}

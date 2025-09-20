@@ -7,7 +7,7 @@ import { UserManagementModal } from "@/app/_components/ui/modals/user/UserManage
 import { User, Checklist, Note } from "@/app/_types";
 import { readUsers } from "@/app/_server/actions/auth/utils";
 import { getAllLists } from "@/app/_server/actions/data/actions";
-import { getAllDocs } from "@/app/_server/actions/data/docs-actions";
+import { getAllDocs } from "@/app/_server/actions/data/notes-actions";
 import { getGlobalSharingAction } from "@/app/_server/actions/sharing/get-global-sharing";
 import { deleteUserAction } from "@/app/_server/actions/users/delete-user";
 import { useRouter } from "next/navigation";
@@ -109,17 +109,16 @@ export function AdminClient({ username }: AdminClientProps) {
     loadAdminData();
   };
 
-
   const stats = {
     totalUsers: users.length,
     totalChecklists: allLists.length,
     totalNotes: allDocs.length,
     sharedChecklists: globalSharing.sharingStats?.totalSharedChecklists || 0,
     sharedNotes: globalSharing.sharingStats?.totalSharedNotes || 0,
-    totalSharingRelationships: globalSharing.sharingStats?.totalSharingRelationships || 0,
+    totalSharingRelationships:
+      globalSharing.sharingStats?.totalSharingRelationships || 0,
     adminUsers: users.filter((u) => u.isAdmin).length,
   };
-
 
   if (isLoading) {
     return (
@@ -171,8 +170,12 @@ export function AdminClient({ username }: AdminClientProps) {
             deletingUser={deletingUser}
           />
         )}
-        {activeTab === "content" && <AdminContent allLists={allLists} allDocs={allDocs} users={users} />}
-        {activeTab === "sharing" && <AdminSharing globalSharing={globalSharing} />}
+        {activeTab === "content" && (
+          <AdminContent allLists={allLists} allDocs={allDocs} users={users} />
+        )}
+        {activeTab === "sharing" && (
+          <AdminSharing globalSharing={globalSharing} />
+        )}
       </div>
 
       <UserManagementModal

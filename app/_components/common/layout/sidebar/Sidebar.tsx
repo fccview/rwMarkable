@@ -1,8 +1,10 @@
 "use client";
 
 import { useContext, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { cn } from "@/app/_utils/utils";
+import { useNavigationGuard } from "@/app/_providers/NavigationGuardProvider";
 import {
   deleteCategoryAction,
   renameCategoryAction,
@@ -10,13 +12,14 @@ import {
 import {
   deleteDocsCategoryAction,
   renameDocsCategoryAction,
-} from "@/app/_server/actions/data/docs-actions";
+} from "@/app/_server/actions/data/notes-actions";
 import { DeleteCategoryModal } from "@/app/_components/ui/modals/category/DeleteCategory";
 import { RenameCategoryModal } from "@/app/_components/ui/modals/category/RenameCategory";
+import { EditChecklistModal } from "@/app/_components/ui/modals/checklist/EditChecklistModal";
+import { EditNoteModal } from "@/app/_components/ui/modals/note/EditNoteModal";
 import { Logo } from "@/app/_components/ui/icons/logo";
 import { SettingsModal } from "@/app/_components/ui/modals/settings/Settings";
 import { Checklist, Category, Note, AppMode } from "@/app/_types";
-import { ChecklistContext } from "../../../../_providers/ChecklistProvider";
 import { useAppMode } from "../../../../_providers/AppModeProvider";
 import { SidebarNavigation } from "./components/SidebarNavigation";
 import { CategoryList } from "./components/CategoryList";
@@ -52,17 +55,20 @@ export function Sidebar({
 }: SidebarProps) {
   const [showDeleteCategoryModal, setShowDeleteCategoryModal] = useState(false);
   const [showRenameCategoryModal, setShowRenameCategoryModal] = useState(false);
+  const [showEditChecklistModal, setShowEditChecklistModal] = useState(false);
+  const [showEditNoteModal, setShowEditNoteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [categoryToRename, setCategoryToRename] = useState<string | null>(null);
+  const [itemToEdit, setItemToEdit] = useState<Checklist | Note | null>(null);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
     new Set()
   );
   const [sharedItemsCollapsed, setSharedItemsCollapsed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  const { selectedChecklist, setSelectedChecklist } =
-    useContext(ChecklistContext);
-  const { mode, setMode, selectedNote, setSelectedNote } = useAppMode();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { mode, setMode, isInitialized } = useAppMode();
 
   const handleDeleteCategory = (categoryName: string) => {
     setCategoryToDelete(categoryName);
@@ -76,7 +82,7 @@ export function Sidebar({
     formData.append("name", categoryToDelete);
 
     const result =
-      mode === "docs"
+      mode === "notes"
         ? await deleteDocsCategoryAction(formData)
         : await deleteCategoryAction(formData);
 
@@ -101,7 +107,7 @@ export function Sidebar({
     formData.append("newName", newName);
 
     const result =
-      mode === "docs"
+      mode === "notes"
         ? await renameDocsCategoryAction(formData)
         : await renameCategoryAction(formData);
 
@@ -132,28 +138,46 @@ export function Sidebar({
     setSharedItemsCollapsed(!sharedItemsCollapsed);
   };
 
+  const { checkNavigation } = useNavigationGuard();
+
   const handleModeSwitch = (newMode: AppMode) => {
-    setMode(newMode);
-    setSelectedChecklist(null);
-    setSelectedNote(null);
+    checkNavigation(() => {
+      setMode(newMode);
+      router.push("/");
+    });
   };
 
   const handleItemClick = (item: Checklist | Note) => {
-    if (mode === "docs") {
-      setSelectedNote(item.id);
-      setSelectedChecklist(null);
+    checkNavigation(() => {
+      if (mode === "notes") {
+        router.push(`/note/${item.id}`);
+      } else {
+        router.push(`/checklist/${item.id}`);
+      }
+      onClose();
+    });
+  };
+
+  const handleEditItem = (item: Checklist | Note) => {
+    setItemToEdit(item);
+    if (mode === "notes") {
+      setShowEditNoteModal(true);
     } else {
-      setSelectedChecklist(item.id);
-      setSelectedNote(null);
+      setShowEditChecklistModal(true);
     }
-    onClose();
   };
 
   const isItemSelected = (item: Checklist | Note) => {
-    return mode === "docs"
-      ? selectedNote === item.id
-      : selectedChecklist === item.id;
+    if (mode === "notes") {
+      return pathname === `/note/${item.id}`;
+    } else {
+      return pathname === `/checklist/${item.id}`;
+    }
   };
+
+  if (!isInitialized) {
+    return null;
+  }
 
   return (
     <>
@@ -199,6 +223,7 @@ export function Sidebar({
               collapsed={sharedItemsCollapsed}
               onToggleCollapsed={toggleSharedItems}
               onItemClick={handleItemClick}
+              onEditItem={handleEditItem}
               isItemSelected={isItemSelected}
               mode={mode}
             />
@@ -212,6 +237,7 @@ export function Sidebar({
               onRenameCategory={handleRenameCategory}
               onQuickCreate={handleQuickCreate}
               onItemClick={handleItemClick}
+              onEditItem={handleEditItem}
               isItemSelected={isItemSelected}
               mode={mode}
             />
@@ -256,6 +282,38 @@ export function Sidebar({
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
       />
+
+      {showEditChecklistModal && itemToEdit && (
+        <EditChecklistModal
+          checklist={itemToEdit as Checklist}
+          categories={categories}
+          onClose={() => {
+            setShowEditChecklistModal(false);
+            setItemToEdit(null);
+          }}
+          onUpdated={() => {
+            setShowEditChecklistModal(false);
+            setItemToEdit(null);
+            window.location.reload();
+          }}
+        />
+      )}
+
+      {showEditNoteModal && itemToEdit && (
+        <EditNoteModal
+          note={itemToEdit as Note}
+          categories={categories}
+          onClose={() => {
+            setShowEditNoteModal(false);
+            setItemToEdit(null);
+          }}
+          onUpdated={() => {
+            setShowEditNoteModal(false);
+            setItemToEdit(null);
+            window.location.reload();
+          }}
+        />
+      )}
     </>
   );
 }

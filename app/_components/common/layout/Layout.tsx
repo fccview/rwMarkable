@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { QuickNav } from "@/app/_components/features/header/QuickNav";
 import { Sidebar } from "./sidebar/Sidebar";
 import { Checklist, Category, Note } from "@/app/_types";
-import { ChecklistContext } from "@/app/_providers/ChecklistProvider";
 import { useAppMode } from "@/app/_providers/AppModeProvider";
 
 interface LayoutProps {
@@ -35,16 +34,17 @@ export function Layout({
   children,
 }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { setSelectedChecklist } = useContext(ChecklistContext);
-  const { setSelectedNote, setMode } = useAppMode();
+  const { setMode, isInitialized } = useAppMode();
 
-  const handleSelectChecklist = (id: string) => {
-    setSelectedChecklist(id);
-  };
-
-  const handleSelectNote = (id: string) => {
-    setSelectedNote(id);
-  };
+  if (!isInitialized) {
+    return (
+      <div className="flex h-screen bg-background w-full">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background w-full">
@@ -70,8 +70,6 @@ export function Layout({
           isAdmin={isAdmin}
           checklists={lists}
           docs={docs || []}
-          onSelectChecklist={handleSelectChecklist}
-          onSelectNote={handleSelectNote}
           onModeChange={setMode}
         />
 

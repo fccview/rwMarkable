@@ -55,7 +55,8 @@ export async function addSharedItem(
   owner: string,
   sharedWith: string[],
   category?: string,
-  filePath?: string
+  filePath?: string,
+  isPubliclyShared?: boolean
 ): Promise<void> {
   const metadata = await readSharingMetadata();
   const sharingId = await generateSharingId(owner, itemId, type);
@@ -70,6 +71,7 @@ export async function addSharedItem(
     category,
     filePath:
       filePath || `${owner}/${category || "Uncategorized"}/${itemId}.md`,
+    isPubliclyShared: isPubliclyShared || false,
   };
 
   if (type === "checklist") {

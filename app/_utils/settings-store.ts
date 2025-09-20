@@ -7,8 +7,10 @@ type Theme = BuiltInTheme | string
 interface SettingsState {
   theme: Theme
   showEmojis: boolean
+  autosaveNotes: boolean
   setTheme: (theme: Theme) => void
   setShowEmojis: (show: boolean) => void
+  setAutosaveNotes: (enabled: boolean) => void
 }
 
 export const useSettings = create<SettingsState>()(
@@ -16,8 +18,10 @@ export const useSettings = create<SettingsState>()(
     (set) => ({
       theme: 'light',
       showEmojis: true,
+      autosaveNotes: true,
       setTheme: (theme) => set({ theme }),
       setShowEmojis: (show) => set({ showEmojis: show }),
+      setAutosaveNotes: (enabled) => set({ autosaveNotes: enabled }),
     }),
     {
       name: 'checklist-settings',

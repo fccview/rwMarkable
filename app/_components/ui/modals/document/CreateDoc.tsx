@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, FileText, Plus, Folder, FileText as DocIcon } from "lucide-react";
 import { Button } from "@/app/_components/ui/elements/button";
 import { Dropdown } from "@/app/_components/ui/elements/dropdown";
 import {
   createDocAction,
   createDocsCategoryAction,
-} from "@/app/_server/actions/data/docs-actions";
+} from "@/app/_server/actions/data/notes-actions";
 import { Category, Note } from "@/app/_types";
 import { Modal } from "../../elements/modal";
 
@@ -29,6 +29,13 @@ export function CreateDocModal({
   const [newCategory, setNewCategory] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [showNewCategory, setShowNewCategory] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (titleInputRef.current) {
+      titleInputRef.current.focus();
+    }
+  }, []);
 
   const categoryOptions = [
     { id: "", name: "Uncategorized", icon: DocIcon },
@@ -86,13 +93,13 @@ export function CreateDocModal({
             Title
           </label>
           <input
+            ref={titleInputRef}
             id="title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
             placeholder="Enter note title..."
-            autoFocus
             required
           />
         </div>
@@ -105,7 +112,7 @@ export function CreateDocModal({
             Category
           </label>
           {!showNewCategory ? (
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <Dropdown
                 value={category}
                 options={categoryOptions}
@@ -122,7 +129,7 @@ export function CreateDocModal({
               </Button>
             </div>
           ) : (
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <input
                 type="text"
                 value={newCategory}

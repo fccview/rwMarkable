@@ -3,23 +3,29 @@ import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const sessionId = request.cookies.get("session")?.value;
+  const response = NextResponse.next();
+  response.headers.set("x-pathname", request.nextUrl.pathname);
 
   if (request.nextUrl.pathname.startsWith("/api")) {
-    return NextResponse.next();
+    return response;
   }
 
   if (request.nextUrl.pathname.startsWith("/auth")) {
     if (sessionId) {
       return NextResponse.redirect(new URL("/", request.url));
     }
-    return NextResponse.next();
+    return response;
+  }
+
+  if (request.nextUrl.pathname.startsWith("/public/")) {
+    return response;
   }
 
   if (!sessionId) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

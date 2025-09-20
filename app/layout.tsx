@@ -5,7 +5,11 @@ import { ThemeProvider } from "@/app/_providers/ThemeProvider";
 import { ChecklistProvider } from "@/app/_providers/ChecklistProvider";
 import { AppModeProvider } from "@/app/_providers/AppModeProvider";
 import { ToastProvider } from "@/app/_providers/ToastProvider";
+import { NavigationGuardProvider } from "@/app/_providers/NavigationGuardProvider";
 import { InstallPrompt } from "@/app/_components/ui/pwa/InstallPrompt";
+import { checkForDocsFolder } from "./_server/actions/data/notes-actions";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -53,6 +57,14 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "";
+
+  const needsMigration = await checkForDocsFolder();
+  if (needsMigration && pathname !== "/migration") {
+    redirect("/migration");
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -66,12 +78,14 @@ export default async function RootLayout({
         <ThemeProvider>
           <AppModeProvider>
             <ChecklistProvider>
-              <ToastProvider>
-                <div className="min-h-screen bg-background text-foreground transition-colors">
-                  {children}
-                  <InstallPrompt />
-                </div>
-              </ToastProvider>
+              <NavigationGuardProvider>
+                <ToastProvider>
+                  <div className="min-h-screen bg-background text-foreground transition-colors">
+                    {children}
+                    <InstallPrompt />
+                  </div>
+                </ToastProvider>
+              </NavigationGuardProvider>
             </ChecklistProvider>
           </AppModeProvider>
         </ThemeProvider>

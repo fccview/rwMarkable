@@ -23,7 +23,11 @@ export async function shareItemAction(
     const type = formData.get("type") as "checklist" | "document";
     const title = formData.get("title") as string;
     const category = formData.get("category") as string;
-    const action = formData.get("action") as "share" | "unshare";
+    const action = formData.get("action") as
+      | "share"
+      | "unshare"
+      | "share-public"
+      | "unshare-public";
     const targetUsers = formData.get("targetUsers") as string;
 
     if (!itemId || !type || !title || !action) {
@@ -85,6 +89,51 @@ export async function shareItemAction(
       }
 
       return { success: true };
+    } else if (action === "share-public") {
+      const existingMetadata = await getItemSharingMetadata(
+        itemId,
+        type,
+        currentUser.username
+      );
+
+      if (existingMetadata) {
+        await updateSharedItem(itemId, type, currentUser.username, {
+          ...existingMetadata,
+          isPubliclyShared: true,
+        });
+      } else {
+        await addSharedItem(
+          itemId,
+          type,
+          title,
+          currentUser.username,
+          [],
+          category,
+          undefined,
+          true
+        );
+      }
+
+      return { success: true };
+    } else if (action === "unshare-public") {
+      const existingMetadata = await getItemSharingMetadata(
+        itemId,
+        type,
+        currentUser.username
+      );
+
+      if (existingMetadata) {
+        if (existingMetadata.sharedWith.length === 0) {
+          await removeSharedItem(itemId, type, currentUser.username);
+        } else {
+          await updateSharedItem(itemId, type, currentUser.username, {
+            ...existingMetadata,
+            isPubliclyShared: false,
+          });
+        }
+      }
+
+      return { success: true };
     } else if (action === "unshare") {
       if (!targetUsers) {
         await removeSharedItem(itemId, type, currentUser.username);
@@ -132,7 +181,9 @@ export async function getItemSharingStatusAction(
   itemId: string,
   type: "checklist" | "document",
   owner: string
-): Promise<Result<{ isShared: boolean; sharedWith: string[] }>> {
+): Promise<
+  Result<{ isShared: boolean; sharedWith: string[]; isPubliclyShared: boolean }>
+> {
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
@@ -146,7 +197,10 @@ export async function getItemSharingStatusAction(
     const metadata = await getItemSharingMetadata(itemId, type, owner);
 
     if (!metadata) {
-      return { success: true, data: { isShared: false, sharedWith: [] } };
+      return {
+        success: true,
+        data: { isShared: false, sharedWith: [], isPubliclyShared: false },
+      };
     }
 
     return {
@@ -154,6 +208,7 @@ export async function getItemSharingStatusAction(
       data: {
         isShared: metadata.sharedWith.length > 0,
         sharedWith: metadata.sharedWith,
+        isPubliclyShared: metadata.isPubliclyShared || false,
       },
     };
   } catch (error) {

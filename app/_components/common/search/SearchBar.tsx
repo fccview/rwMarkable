@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/app/_utils/utils";
 import { Checklist, Note, AppMode } from "@/app/_types";
 import { SearchInput } from "./components/SearchInput";
@@ -20,8 +21,6 @@ interface SearchBarProps {
   mode: AppMode;
   checklists: Checklist[];
   docs: Note[];
-  onSelectChecklist: (id: string) => void;
-  onSelectNote: (id: string) => void;
   onModeChange?: (mode: AppMode) => void;
   className?: string;
 }
@@ -30,11 +29,10 @@ export function SearchBar({
   mode,
   checklists,
   docs,
-  onSelectChecklist,
-  onSelectNote,
   onModeChange,
   className,
 }: SearchBarProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -158,15 +156,15 @@ export function SearchBar({
 
   const handleSelectResult = (result: SearchResult) => {
     if (result.type === "checklist") {
-      if (mode === "docs" && onModeChange) {
+      if (mode === "notes" && onModeChange) {
         onModeChange("checklists");
       }
-      onSelectChecklist(result.id);
+      router.push(`/checklist/${result.id}`);
     } else {
       if (mode === "checklists" && onModeChange) {
-        onModeChange("docs");
+        onModeChange("notes");
       }
-      onSelectNote(result.id);
+      router.push(`/note/${result.id}`);
     }
     setIsOpen(false);
     setQuery("");

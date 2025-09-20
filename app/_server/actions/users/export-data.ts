@@ -2,7 +2,7 @@
 
 import { getCurrentUser } from "@/app/_server/actions/auth/utils";
 import { getLists } from "../data/actions";
-import { getDocs } from "../data/docs-actions";
+import { getDocs } from "../data/notes-actions";
 import {
   getItemsSharedByUser,
   getItemsSharedWithUser,

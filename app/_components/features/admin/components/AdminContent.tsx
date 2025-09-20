@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { CheckSquare, FileText, ChevronDown, ChevronRight, User, Shield } from "lucide-react";
+import Link from "next/link";
+import {
+  CheckSquare,
+  FileText,
+  ChevronDown,
+  ChevronRight,
+  User,
+  Shield,
+  ExternalLink,
+} from "lucide-react";
 import { Checklist, Note, User as UserType } from "@/app/_types";
 
 interface AdminContentProps {
@@ -24,25 +33,30 @@ export function AdminContent({ allLists, allDocs, users }: AdminContentProps) {
   const sortedUserContent = useMemo(() => {
     const userContentMap = new Map<string, UserContent>();
 
-    users.forEach(user => {
-      const userChecklists = allLists.filter(list => list.owner === user.username);
-      const userNotes = allDocs.filter(doc => doc.owner === user.username);
+    users.forEach((user) => {
+      const userChecklists = allLists.filter(
+        (list) => list.owner === user.username
+      );
+      const userNotes = allDocs.filter((doc) => doc.owner === user.username);
 
       userContentMap.set(user.username, {
         user,
         checklists: userChecklists,
         notes: userNotes,
-        totalItems: userChecklists.length + userNotes.length
+        totalItems: userChecklists.length + userNotes.length,
       });
     });
 
-    return Array.from(userContentMap.values())
-      .sort((a, b) => b.totalItems - a.totalItems);
+    return Array.from(userContentMap.values()).sort(
+      (a, b) => b.totalItems - a.totalItems
+    );
   }, [users, allLists, allDocs]);
 
   useEffect(() => {
     if (!isInitialized && sortedUserContent.length > 0) {
-      setExpandedUsers(new Set(sortedUserContent.map(uc => uc.user.username)));
+      setExpandedUsers(
+        new Set(sortedUserContent.map((uc) => uc.user.username))
+      );
       setIsInitialized(true);
     }
   }, [sortedUserContent, isInitialized]);
@@ -61,7 +75,9 @@ export function AdminContent({ allLists, allDocs, users }: AdminContentProps) {
     if (expandedUsers.size === sortedUserContent.length) {
       setExpandedUsers(new Set());
     } else {
-      setExpandedUsers(new Set(sortedUserContent.map(uc => uc.user.username)));
+      setExpandedUsers(
+        new Set(sortedUserContent.map((uc) => uc.user.username))
+      );
     }
   };
 
@@ -76,13 +92,16 @@ export function AdminContent({ allLists, allDocs, users }: AdminContentProps) {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground">
-            {allLists.length + allDocs.length} total items across {users.length} users
+            {allLists.length + allDocs.length} total items across {users.length}{" "}
+            users
           </span>
           <button
             onClick={toggleAll}
             className="text-sm text-primary hover:text-primary/80 font-medium"
           >
-            {expandedUsers.size === sortedUserContent.length ? "Collapse All" : "Expand All"}
+            {expandedUsers.size === sortedUserContent.length
+              ? "Collapse All"
+              : "Expand All"}
           </button>
         </div>
       </div>
@@ -93,7 +112,10 @@ export function AdminContent({ allLists, allDocs, users }: AdminContentProps) {
           const hasContent = userContent.totalItems > 0;
 
           return (
-            <div key={userContent.user.username} className="p-6 rounded-lg border border-border bg-card">
+            <div
+              key={userContent.user.username}
+              className="p-6 rounded-lg border border-border bg-card"
+            >
               <div
                 className="flex items-center justify-between cursor-pointer"
                 onClick={() => toggleUser(userContent.user.username)}
@@ -112,7 +134,8 @@ export function AdminContent({ allLists, allDocs, users }: AdminContentProps) {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {userContent.checklists.length} checklists • {userContent.notes.length} notes
+                      {userContent.checklists.length} checklists •{" "}
+                      {userContent.notes.length} notes
                     </p>
                   </div>
                 </div>
@@ -141,13 +164,19 @@ export function AdminContent({ allLists, allDocs, users }: AdminContentProps) {
                         </h4>
                         <div className="space-y-2 max-h-64 overflow-y-auto">
                           {userContent.checklists.map((list) => (
-                            <div
+                            <Link
                               key={list.id}
-                              className="p-3 bg-muted/50 rounded-lg"
+                              href={`/checklist/${list.id}`}
+                              className="block p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
                             >
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                  <p className="font-medium text-foreground text-sm">{list.title}</p>
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-medium text-foreground text-sm">
+                                      {list.title}
+                                    </p>
+                                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                                  </div>
                                   <p className="text-xs text-muted-foreground mt-1">
                                     {list.category} • {list.items.length} items
                                   </p>
@@ -158,7 +187,7 @@ export function AdminContent({ allLists, allDocs, users }: AdminContentProps) {
                                   </span>
                                 )}
                               </div>
-                            </div>
+                            </Link>
                           ))}
                         </div>
                       </div>
@@ -170,15 +199,22 @@ export function AdminContent({ allLists, allDocs, users }: AdminContentProps) {
                         </h4>
                         <div className="space-y-2 max-h-64 overflow-y-auto">
                           {userContent.notes.map((doc) => (
-                            <div
+                            <Link
                               key={doc.id}
-                              className="p-3 bg-muted/50 rounded-lg"
+                              href={`/note/${doc.id}`}
+                              className="block p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
                             >
                               <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                  <p className="font-medium text-foreground text-sm">{doc.title}</p>
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-medium text-foreground text-sm">
+                                      {doc.title}
+                                    </p>
+                                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                                  </div>
                                   <p className="text-xs text-muted-foreground mt-1">
-                                    {doc.category} • {doc.content.length} characters
+                                    {doc.category} • {doc.content.length}{" "}
+                                    characters
                                   </p>
                                 </div>
                                 {doc.isShared && (
@@ -187,7 +223,7 @@ export function AdminContent({ allLists, allDocs, users }: AdminContentProps) {
                                   </span>
                                 )}
                               </div>
-                            </div>
+                            </Link>
                           ))}
                         </div>
                       </div>

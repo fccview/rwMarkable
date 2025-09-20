@@ -78,7 +78,7 @@ export async function deleteAccountAction(
       const docsDir = path.join(
         process.cwd(),
         "data",
-        "docs",
+        "notes",
         currentUser.username
       );
       await fs.rm(docsDir, { recursive: true, force: true });

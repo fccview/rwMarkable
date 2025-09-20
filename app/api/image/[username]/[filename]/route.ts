@@ -24,7 +24,7 @@ export async function GET(
         const filePath = path.join(
             process.cwd(),
             "data",
-            "docs",
+            "notes",
             username,
             "images",
             filename

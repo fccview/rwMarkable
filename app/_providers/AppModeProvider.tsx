@@ -14,6 +14,7 @@ interface AppModeContextType {
   setMode: (mode: AppMode) => void;
   selectedNote: string | null;
   setSelectedNote: (id: string | null) => void;
+  isInitialized: boolean;
 }
 
 const AppModeContext = createContext<AppModeContextType | undefined>(undefined);
@@ -21,12 +22,14 @@ const AppModeContext = createContext<AppModeContextType | undefined>(undefined);
 export function AppModeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<AppMode>("checklists");
   const [selectedNote, setSelectedNote] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const savedMode = localStorage.getItem("app-mode");
-    if (savedMode === "checklists" || savedMode === "docs") {
+    if (savedMode === "checklists" || savedMode === "notes") {
       setMode(savedMode);
     }
+    setIsInitialized(true);
   }, []);
 
   const handleSetMode = (newMode: AppMode) => {
@@ -41,6 +44,7 @@ export function AppModeProvider({ children }: { children: ReactNode }) {
         setMode: handleSetMode,
         selectedNote,
         setSelectedNote,
+        isInitialized,
       }}
     >
       {children}

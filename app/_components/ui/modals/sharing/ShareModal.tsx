@@ -1,7 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Share2, Users, Check, AlertCircle, Search } from "lucide-react";
+import {
+  X,
+  Share2,
+  Users,
+  Check,
+  AlertCircle,
+  Search,
+  Globe,
+  Link,
+  Copy,
+} from "lucide-react";
 import { Button } from "@/app/_components/ui/elements/button";
 import {
   shareItemAction,
@@ -10,6 +20,7 @@ import {
 import { readUsers } from "@/app/_server/actions/auth/utils";
 import { User } from "@/app/_types";
 import { Modal } from "../../elements/modal";
+import { cn } from "@/app/_utils/utils";
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -37,6 +48,9 @@ export function ShareModal({
   const [success, setSuccess] = useState<string | null>(null);
   const [currentSharing, setCurrentSharing] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isPubliclyShared, setIsPubliclyShared] = useState(false);
+  const [publicUrl, setPublicUrl] = useState("");
+  const [activeTab, setActiveTab] = useState<"users" | "public">("users");
 
   useEffect(() => {
     if (isOpen) {
@@ -66,6 +80,13 @@ export function ShareModal({
       if (result.success && result.data) {
         setCurrentSharing(result.data.sharedWith);
         setSelectedUsers(result.data.sharedWith);
+        setIsPubliclyShared(result.data.isPubliclyShared || false);
+        if (result.data.isPubliclyShared) {
+          const baseUrl = window.location.origin;
+          const publicPath =
+            itemType === "checklist" ? "public/checklist" : "public/note";
+          setPublicUrl(`${baseUrl}/${publicPath}/${itemId}`);
+        }
       }
     } catch (error) {
       console.error("Error loading current sharing:", error);
@@ -177,6 +198,58 @@ export function ShareModal({
     }
   };
 
+  const handlePublicToggle = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("itemId", itemId);
+      formData.append("type", itemType);
+      formData.append("title", itemTitle);
+      formData.append("category", itemCategory || "");
+      formData.append(
+        "action",
+        isPubliclyShared ? "unshare-public" : "share-public"
+      );
+
+      const result = await shareItemAction(formData);
+
+      if (result.success) {
+        const newPublicState = !isPubliclyShared;
+        setIsPubliclyShared(newPublicState);
+
+        if (newPublicState) {
+          const baseUrl = window.location.origin;
+          const publicPath =
+            itemType === "checklist" ? "public/checklist" : "public/note";
+          const url = `${baseUrl}/${publicPath}/${itemId}`;
+          setPublicUrl(url);
+          setSuccess("Item is now publicly accessible!");
+        } else {
+          setPublicUrl("");
+          setSuccess("Item is no longer publicly accessible!");
+        }
+      } else {
+        setError(result.error || "Failed to update public sharing");
+      }
+    } catch (error) {
+      setError("An error occurred while updating public sharing");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setSuccess("Public URL copied to clipboard!");
+    } catch (error) {
+      setError("Failed to copy URL to clipboard");
+    }
+  };
+
   if (!isOpen) return null;
 
   const availableUsers = users.filter((user) => user.username !== itemOwner);
@@ -192,9 +265,9 @@ export function ShareModal({
       title={`Share ${itemType}`}
       titleIcon={<Share2 className="h-5 w-5 text-primary" />}
     >
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div>
-          <h3 className="font-medium mb-1">{itemTitle}</h3>
+          <h3 className="font-semibold text-lg mb-1">{itemTitle}</h3>
           <p className="text-sm text-muted-foreground">
             {itemCategory && `Category: ${itemCategory}`}
           </p>
@@ -214,73 +287,172 @@ export function ShareModal({
           </div>
         )}
 
-        <div>
-          <h4 className="font-medium mb-3 flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Select users to share with
-          </h4>
-
-          <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search users..."
-              className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-            />
-          </div>
-
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {filteredUsers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {searchQuery
-                  ? "No users found matching your search."
-                  : "No other users available to share with."}
-              </p>
-            ) : (
-              filteredUsers.map((user) => (
-                <label
-                  key={user.username}
-                  className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers.includes(user.username)}
-                    onChange={() => handleUserToggle(user.username)}
-                    className="rounded border-border"
-                  />
-                  <div className="flex-1">
-                    <span className="text-sm font-medium">{user.username}</span>
-                    {user.isAdmin && (
-                      <span className="text-xs text-muted-foreground ml-2">
-                        (Admin)
-                      </span>
-                    )}
-                  </div>
-                  {currentSharing.includes(user.username) && (
-                    <span className="text-xs text-primary">
-                      Currently shared
-                    </span>
-                  )}
-                </label>
-              ))
+        {/* Tab Navigation */}
+        <div className="flex border-b border-border">
+          <button
+            onClick={() => setActiveTab("users")}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors",
+              activeTab === "users"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             )}
-          </div>
+          >
+            <Users className="h-4 w-4" />
+            Share with Users
+          </button>
+          <button
+            onClick={() => setActiveTab("public")}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors",
+              activeTab === "public"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Globe className="h-4 w-4" />
+            Public Link
+          </button>
         </div>
 
-        {currentSharing.length > 0 && (
-          <div className="pt-2 border-t border-border">
-            <p className="text-sm text-muted-foreground mb-2">
-              Currently shared with: {currentSharing.join(", ")}
-            </p>
+        {/* Users Tab */}
+        {activeTab === "users" && (
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search users..."
+                className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+              />
+            </div>
+
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {filteredUsers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    {searchQuery
+                      ? "No users found matching your search."
+                      : "No other users available to share with."}
+                  </p>
+                </div>
+              ) : (
+                filteredUsers.map((user) => (
+                  <label
+                    key={user.username}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(user.username)}
+                      onChange={() => handleUserToggle(user.username)}
+                      className="rounded border-border text-primary focus:ring-primary"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">
+                          {user.username}
+                        </span>
+                        {user.isAdmin && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            Admin
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {currentSharing.includes(user.username) && (
+                      <span className="text-xs text-primary font-medium">
+                        Currently shared
+                      </span>
+                    )}
+                  </label>
+                ))
+              )}
+            </div>
+
+            {currentSharing.length > 0 && (
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">
+                  Currently shared with:
+                </p>
+                <p className="text-sm font-medium">
+                  {currentSharing.join(", ")}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Public Tab */}
+        {activeTab === "public" && (
+          <div className="space-y-4">
+            <div className="p-4 bg-muted/30 rounded-lg border border-border">
+              <div className="flex items-center gap-3 mb-3">
+                <Globe className="h-5 w-5 text-primary" />
+                <div>
+                  <h4 className="font-medium">Public Access</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Make this {itemType} accessible to anyone with the link
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={handlePublicToggle}
+                  disabled={isLoading}
+                  variant={isPubliclyShared ? "destructive" : "default"}
+                  className="flex-1"
+                >
+                  {isLoading
+                    ? "Updating..."
+                    : isPubliclyShared
+                    ? "Make Private"
+                    : "Make Public"}
+                </Button>
+              </div>
+            </div>
+
+            {isPubliclyShared && publicUrl && (
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Link className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">
+                    Public URL
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={publicUrl}
+                    readOnly
+                    className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-sm font-mono"
+                  />
+                  <Button
+                    onClick={handleCopyUrl}
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copy
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Anyone with this link can view this {itemType}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      <div className="flex items-center justify-between p-6 border-t border-border">
+      <div className="flex items-center justify-between p-6 border-t border-border bg-muted/20">
         <div className="flex gap-2">
-          {currentSharing.length > 0 && (
+          {activeTab === "users" && currentSharing.length > 0 && (
             <Button
               variant="outline"
               onClick={handleRemoveAllSharing}
@@ -293,18 +465,22 @@ export function ShareModal({
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
-            Cancel
+            Close
           </Button>
-          {selectedUsers.length > 0 ? (
-            <Button onClick={handleShare} disabled={isLoading}>
-              {isLoading ? "Updating..." : "Share"}
-            </Button>
-          ) : currentSharing.length > 0 ? (
-            <Button onClick={handleUnshare} disabled={isLoading}>
-              {isLoading ? "Removing..." : "Remove Selected"}
-            </Button>
-          ) : (
-            <Button disabled>No users selected</Button>
+          {activeTab === "users" && (
+            <>
+              {selectedUsers.length > 0 ? (
+                <Button onClick={handleShare} disabled={isLoading}>
+                  {isLoading ? "Updating..." : "Share"}
+                </Button>
+              ) : currentSharing.length > 0 ? (
+                <Button onClick={handleUnshare} disabled={isLoading}>
+                  {isLoading ? "Removing..." : "Remove Selected"}
+                </Button>
+              ) : (
+                <Button disabled>No users selected</Button>
+              )}
+            </>
           )}
         </div>
       </div>

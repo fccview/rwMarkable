@@ -1,5 +1,8 @@
 import { EMOJIS } from "@/app/_consts/emojis";
-import { loadCustomEmojis, processCustomEmojis } from "@/app/_utils/config-loader";
+import {
+  loadCustomEmojis,
+  processCustomEmojis,
+} from "@/app/_utils/config-loader";
 
 let customEmojisCache: { [key: string]: string } = {};
 let cacheInitialized = false;
@@ -11,7 +14,7 @@ const loadCustomEmojisOnce = async () => {
       customEmojisCache = processCustomEmojis(customConfig);
       cacheInitialized = true;
     } catch (error) {
-      console.warn('Failed to load custom emojis:', error);
+      console.warn("Failed to load custom emojis:", error);
       customEmojisCache = {};
       cacheInitialized = true;
     }
@@ -30,7 +33,7 @@ const getSingular = (word: string): string => {
     return word.slice(0, -1);
   }
   return word;
-}
+};
 
 const getWordVariations = (word: string): string[] => {
   const variations = [
@@ -40,12 +43,12 @@ const getWordVariations = (word: string): string[] => {
   ];
 
   return variations.filter((v, i, a) => a.indexOf(v) === i);
-}
+};
 
 export const findMatchingEmoji = async (text: string): Promise<string> => {
   try {
     const customEmojis = await loadCustomEmojisOnce();
-    const emojiDict = { ...EMOJIS, ...customEmojis };
+    const emojiDict = { ...customEmojis, ...EMOJIS };
 
     const words = text.split(/\s+/);
     const allWordVariations = words.map(getWordVariations).flat();
@@ -83,7 +86,7 @@ export const findMatchingEmoji = async (text: string): Promise<string> => {
 
     return "";
   } catch (error) {
-    console.warn('Error finding emoji:', error);
+    console.warn("Error finding emoji:", error);
     return "";
   }
-}
+};

@@ -3,7 +3,8 @@
 import { Plus, FolderPlus, Settings, User } from "lucide-react";
 import { Button } from "@/app/_components/ui/elements/button";
 import { AppMode } from "@/app/_types";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useNavigationGuard } from "@/app/_providers/NavigationGuardProvider";
 
 interface SidebarActionsProps {
   mode: AppMode;
@@ -22,9 +23,12 @@ export function SidebarActions({
   username,
   isAdmin,
 }: SidebarActionsProps) {
+  const router = useRouter();
+  const { checkNavigation } = useNavigationGuard();
+
   return (
     <div className="p-4 space-y-2 border-t border-border">
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
         <Button
           onClick={() => onOpenCreateModal()}
           size="sm"
@@ -33,18 +37,14 @@ export function SidebarActions({
           <Plus className="h-4 w-4 mr-2" />
           New {mode === "checklists" ? "Checklist" : "Note"}
         </Button>
-        <Button
-          onClick={onOpenCategoryModal}
-          variant="outline"
-          size="sm"
-        >
+        <Button onClick={onOpenCategoryModal} variant="outline" size="sm">
           <FolderPlus className="h-4 w-4" />
         </Button>
       </div>
 
       <div className="flex items-center justify-between">
-        <Link
-          href="/profile"
+        <button
+          onClick={() => checkNavigation(() => router.push("/profile"))}
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <span className="truncate">{username}</span>
@@ -53,15 +53,14 @@ export function SidebarActions({
               Admin
             </span>
           )}
-        </Link>
+        </button>
         <Button
           variant="ghost"
           size="sm"
           className="h-8 w-8 p-0"
+          onClick={() => checkNavigation(() => router.push("/profile"))}
         >
-          <Link href="/profile">
-            <User className="h-4 w-4" />
-          </Link>
+          <User className="h-4 w-4" />
         </Button>
       </div>
     </div>

@@ -1,55 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authenticateApiKey } from "@/app/_server/utils/api-auth";
-import { getLists } from "@/app/_server/actions/data/actions";
+import {
+  withApiAuth,
+  getChecklistsForUser,
+} from "@/app/_server/utils/api-helpers";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  return withApiAuth(request, async (user) => {
     try {
-        const apiKey = request.headers.get("x-api-key");
-        const user = await authenticateApiKey(apiKey || "");
-
-        if (!user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const lists = await getLists(user.username);
-        if (!lists.success || !lists.data) {
-            return NextResponse.json({ error: lists.error || "Failed to fetch checklists" }, { status: 500 });
-        }
-
-        const userLists = lists.data.filter(list => list.owner === user.username);
-
-        const formattedLists = userLists.map(list => ({
-            id: list.id,
-            title: list.title,
-            category: list.category || "Uncategorized",
-            type: list.type || "simple",
-            items: list.items.map((item, index) => {
-                const baseItem = {
-                    index,
-                    text: item.text,
-                    completed: item.completed
-                };
-
-                // Add task-specific fields if this is a task checklist
-                if (list.type === "task") {
-                    return {
-                        ...baseItem,
-                        status: item.status || "todo",
-                        time: item.timeEntries && item.timeEntries.length > 0 ? item.timeEntries : 0
-                    };
-                }
-
-                return baseItem;
-            }),
-            createdAt: list.createdAt,
-            updatedAt: list.updatedAt
-        }));
-
-        return NextResponse.json({ checklists: formattedLists });
+      const checklists = await getChecklistsForUser(user.username);
+      return NextResponse.json({ checklists });
     } catch (error) {
-        console.error("API Error:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+      return NextResponse.json(
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch checklists",
+        },
+        { status: 500 }
+      );
     }
+  });
 }

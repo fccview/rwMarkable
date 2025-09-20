@@ -9,6 +9,9 @@ import {
   FileText,
   CheckSquare,
   BarChart3,
+  Edit,
+  Users,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/app/_components/ui/elements/button";
 import { cn } from "@/app/_utils/utils";
@@ -17,6 +20,7 @@ import {
   DropdownMenuItem,
 } from "@/app/_components/ui/elements/dropdown-menu";
 import { Category, Checklist, Note } from "@/app/_types";
+import { SidebarItem } from "./SidebarItem";
 
 interface CategoryListProps {
   categories: Category[];
@@ -27,8 +31,9 @@ interface CategoryListProps {
   onRenameCategory: (categoryName: string) => void;
   onQuickCreate: (categoryName: string) => void;
   onItemClick: (item: Checklist | Note) => void;
+  onEditItem?: (item: Checklist | Note) => void;
   isItemSelected: (item: Checklist | Note) => boolean;
-  mode: "checklists" | "docs";
+  mode: "checklists" | "notes";
 }
 
 export function CategoryList({
@@ -40,6 +45,7 @@ export function CategoryList({
   onRenameCategory,
   onQuickCreate,
   onItemClick,
+  onEditItem,
   isItemSelected,
   mode,
 }: CategoryListProps) {
@@ -49,6 +55,10 @@ export function CategoryList({
         (item.category || "Uncategorized") === categoryName && !item.isShared
     );
   };
+
+  if (!categories || categories.length === 0 || !items || items.length === 0) {
+    return null;
+  }
 
   return (
     <div className="space-y-1">
@@ -120,29 +130,14 @@ export function CategoryList({
             {!isCollapsed && hasItems && (
               <div className="ml-6 space-y-1">
                 {categoryItems.map((item) => (
-                  <button
+                  <SidebarItem
                     key={item.id}
-                    onClick={() => onItemClick(item)}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors w-full text-left truncate",
-                      isItemSelected(item)
-                        ? "bg-primary/10 text-primary"
-                        : "hover:bg-muted/50 text-foreground"
-                    )}
-                  >
-                    {mode === "docs" ? (
-                      <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    ) : (
-                      <>
-                        {"type" in item && item.type === "task" ? (
-                          <BarChart3 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        ) : (
-                          <CheckSquare className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        )}
-                      </>
-                    )}
-                    <span className="truncate">{item.title}</span>
-                  </button>
+                    item={item}
+                    mode={mode}
+                    isSelected={isItemSelected(item)}
+                    onItemClick={onItemClick}
+                    onEditItem={onEditItem}
+                  />
                 ))}
               </div>
             )}

@@ -71,6 +71,7 @@ export interface SharedItem {
   sharedAt: string;
   category?: string;
   filePath: string;
+  isPubliclyShared?: boolean;
 }
 
 export interface SharingMetadata {
@@ -88,4 +89,4 @@ export interface EmojiDictionary {
   [key: string]: string;
 }
 
-export type AppMode = "checklists" | "docs";
+export type AppMode = "checklists" | "notes";

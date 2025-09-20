@@ -55,7 +55,14 @@ export function DropdownMenu({
             align === "right" ? "right-0" : "left-0"
           )}
         >
-          {children}
+          {React.Children.map(children, (child) => {
+            if (React.isValidElement(child) && child.type === DropdownMenuItem) {
+              return React.cloneElement(child, {
+                onClose: () => setIsOpen(false),
+              } as any);
+            }
+            return child;
+          })}
         </div>
       )}
     </div>
@@ -67,6 +74,7 @@ interface DropdownMenuItemProps {
   icon?: React.ReactNode;
   children: React.ReactNode;
   variant?: "default" | "destructive";
+  onClose?: () => void;
 }
 
 export function DropdownMenuItem({
@@ -74,14 +82,20 @@ export function DropdownMenuItem({
   icon,
   children,
   variant = "default",
+  onClose,
 }: DropdownMenuItemProps) {
+  const handleClick = () => {
+    onClick();
+    onClose?.();
+  };
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       className={cn(
         "w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent transition-colors text-left",
         variant === "destructive" &&
-          "text-destructive hover:text-destructive/80"
+        "text-destructive hover:text-destructive/80"
       )}
     >
       {icon && <span className="w-4 h-4">{icon}</span>}

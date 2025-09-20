@@ -3,7 +3,10 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/app/_components/ui/elements/button";
 import { Trash2, Shield, Key, Copy, Eye, EyeOff } from "lucide-react";
-import { generateApiKeyAction, getApiKeyAction } from "@/app/_server/actions/api/api-key-actions";
+import {
+  generateApiKeyAction,
+  getApiKeyAction,
+} from "@/app/_server/actions/api/api-key-actions";
 
 interface SettingsTabProps {
   setShowDeleteModal: (show: boolean) => void;
@@ -57,16 +60,15 @@ export function SettingsTab({
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(apiKey);
         } else {
-          // Fallback for older browsers
-          const textArea = document.createElement('textarea');
+          const textArea = document.createElement("textarea");
           textArea.value = apiKey;
           document.body.appendChild(textArea);
           textArea.select();
-          document.execCommand('copy');
+          document.execCommand("copy");
           document.body.removeChild(textArea);
         }
       } catch (error) {
-        console.error('Failed to copy API key:', error);
+        console.error("Failed to copy API key:", error);
       }
     }
   };
@@ -83,7 +85,8 @@ export function SettingsTab({
             <div>
               <h3 className="font-medium">API Key</h3>
               <p className="text-sm text-muted-foreground">
-                Generate an API key for programmatic access to your checklists and notes
+                Generate an API key for programmatic access to your checklists
+                and notes
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -98,7 +101,11 @@ export function SettingsTab({
                     onClick={() => setShowApiKey(!showApiKey)}
                     className="h-8 w-8 p-0"
                   >
-                    {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showApiKey ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"
@@ -116,7 +123,11 @@ export function SettingsTab({
                 disabled={isGenerating}
               >
                 <Key className="h-4 w-4 mr-2" />
-                {isGenerating ? "Generating..." : apiKey ? "Regenerate" : "Generate"}
+                {isGenerating
+                  ? "Generating..."
+                  : apiKey
+                  ? "Regenerate"
+                  : "Generate"}
               </Button>
             </div>
           </div>

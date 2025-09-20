@@ -2,7 +2,7 @@
 
 import { readSharingMetadata, writeSharingMetadata } from "./sharing-utils";
 import { getAllLists } from "../data/actions";
-import { getAllDocs } from "../data/docs-actions";
+import { getAllDocs } from "../data/notes-actions";
 import { Result } from "@/app/_types";
 
 export async function cleanupSharingMetadataAction(): Promise<

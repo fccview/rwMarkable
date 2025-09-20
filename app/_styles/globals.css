@@ -386,10 +386,6 @@
     margin-top: 1rem;
 }
 
-.prose p {
-    margin-bottom: 1rem;
-}
-
 .prose strong {
     @apply font-semibold text-foreground;
 }
@@ -436,6 +432,7 @@
     text-decoration: none;
 }
 
+
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -479,6 +476,21 @@
 
 .ProseMirror ul {
     list-style-type: disc;
+}
+
+.code-block-wrapper .ProseMirror {
+    color: transparent;
+    caret-color: white;
+    border: none !important;
+    outline: none !important;
+}
+
+.code-block-wrapper .ProseMirror::selection {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.code-block-wrapper .ProseMirror::-moz-selection {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .ProseMirror ol {
@@ -541,4 +553,18 @@
     font-style: italic;
     color: rgb(var(--muted-foreground));
     margin: 1rem 0;
+}
+
+.file-attachment-wrapper {
+    margin: 1rem 0;
+    display: block;
+}
+
+.file-attachment {
+    display: inline-block;
+    max-width: 100%;
+}
+
+.file-attachment-wrapper .file-attachment {
+    margin: 0;
 }

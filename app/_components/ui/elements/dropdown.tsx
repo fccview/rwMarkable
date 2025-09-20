@@ -64,9 +64,8 @@ export function Dropdown<T extends string>({
           <span className="text-sm font-medium">{selectedOption?.name}</span>
         </div>
         <ChevronDown
-          className={`h-4 w-4 transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""
+            }`}
         />
       </button>
 
