@@ -1,16 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Folder, ListTodo } from "lucide-react";
 import { updateListAction } from "@/app/_server/actions/data/actions";
 import { getCurrentUser } from "@/app/_server/actions/users/current";
 import { Button } from "@/app/_components/ui/elements/button";
-import { Dropdown } from "@/app/_components/ui/elements/dropdown";
+import { CategoryTreeSelector } from "@/app/_components/ui/elements/category-tree-selector";
 import { Modal } from "@/app/_components/ui/elements/modal";
 
 interface Category {
   name: string;
   count: number;
+  path: string;
+  parent?: string;
+  level: number;
 }
 
 interface EditChecklistModalProps {
@@ -32,6 +36,7 @@ export function EditChecklistModal({
   onClose,
   onUpdated,
 }: EditChecklistModalProps) {
+  const router = useRouter();
   const [title, setTitle] = useState(checklist.title);
   const [category, setCategory] = useState(checklist.category || "");
   const [isLoading, setIsLoading] = useState(false);
@@ -51,15 +56,6 @@ export function EditChecklistModal({
     checkOwnership();
   }, [checklist.owner]);
 
-  const categoryOptions = [
-    { id: "", name: "Uncategorized", icon: ListTodo },
-    ...categories.map((cat) => ({
-      id: cat.name,
-      name: `${cat.name} (${cat.count})`,
-      icon: Folder,
-    })),
-  ];
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -74,7 +70,15 @@ export function EditChecklistModal({
     const result = await updateListAction(formData);
     setIsLoading(false);
 
-    if (result.success) {
+    if (result.success && result.data) {
+      const updatedChecklist = result.data;
+
+      // If the ID changed, redirect to the new URL
+      if (updatedChecklist.id !== checklist.id) {
+        router.push(`/checklist/${updatedChecklist.id}`);
+        return;
+      }
+
       onUpdated();
     }
   };
@@ -107,10 +111,10 @@ export function EditChecklistModal({
             <label className="block text-sm font-medium text-foreground mb-2">
               Category
             </label>
-            <Dropdown
-              value={category}
-              options={categoryOptions}
-              onChange={setCategory}
+            <CategoryTreeSelector
+              categories={categories}
+              selectedCategory={category}
+              onCategorySelect={setCategory}
               className="w-full"
             />
           </div>

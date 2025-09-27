@@ -81,6 +81,9 @@ The recommended way to run `rwMarkable` is with Docker.
           # This is needed for persistent data storage on YOUR host machine rather than inside the docker volume.
           - ./data:/app/data:rw
           - ./config:/app/config:ro
+          # --- MOUNT CACHE DIRECTORY (OPTIONAL)
+          # This improves performance by persisting Next.js cache between restarts
+          - ./cache:/app/.next/cache:rw
         restart: unless-stopped
         environment:
           - NODE_ENV=production
@@ -93,9 +96,12 @@ The recommended way to run `rwMarkable` is with Docker.
 2.  Create the data directory and set permissions:
 
     ```bash
-    mkdir -p data/users data/checklists data/notes data/sharing
+    mkdir -p data/users data/checklists data/notes data/sharing cache
     sudo chown -R 1000:1000 data/
+    sudo chown -R 1000:1000 cache/ 
     ```
+
+    **Note:** The cache directory is optional. If you don't want cache persistence, you can comment out the cache volume line in your `docker-compose.yml`.
 
 3.  Start the container:
 

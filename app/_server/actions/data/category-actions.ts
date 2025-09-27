@@ -16,9 +16,11 @@ import { parseMarkdown, listToMarkdown } from "./checklist-utils";
 export const createCategoryAction = async (formData: FormData) => {
   try {
     const name = formData.get("name") as string;
+    const parent = formData.get("parent") as string;
 
     const userDir = await getUserDir();
-    const categoryDir = path.join(userDir, name);
+    const categoryPath = parent ? path.join(parent, name) : name;
+    const categoryDir = path.join(userDir, categoryPath);
     await ensureDir(categoryDir);
 
     return { success: true, data: { name, count: 0 } };
@@ -29,13 +31,20 @@ export const createCategoryAction = async (formData: FormData) => {
 
 export const deleteCategoryAction = async (formData: FormData) => {
   try {
-    const name = formData.get("name") as string;
+    const categoryPath = formData.get("path") as string;
 
     const userDir = await getUserDir();
-    const categoryDir = path.join(userDir, name);
+    const categoryDir = path.join(userDir, categoryPath);
     await deleteDir(categoryDir);
 
-    revalidatePath("/");
+    try {
+      revalidatePath("/");
+    } catch (error) {
+      console.warn(
+        "Cache revalidation failed, but data was saved successfully:",
+        error
+      );
+    }
     return { success: true };
   } catch (error) {
     return { error: "Failed to delete category" };
@@ -44,16 +53,20 @@ export const deleteCategoryAction = async (formData: FormData) => {
 
 export const renameCategoryAction = async (formData: FormData) => {
   try {
-    const oldName = formData.get("oldName") as string;
+    const oldPath = formData.get("oldPath") as string;
     const newName = formData.get("newName") as string;
 
-    if (!oldName || !newName) {
-      return { error: "Both old and new names are required" };
+    if (!oldPath || !newName) {
+      return { error: "Both old path and new name are required" };
     }
 
     const userDir = await getUserDir();
-    const oldCategoryDir = path.join(userDir, oldName);
-    const newCategoryDir = path.join(userDir, newName);
+    const oldCategoryDir = path.join(userDir, oldPath);
+
+    const pathParts = oldPath.split("/");
+    pathParts[pathParts.length - 1] = newName;
+    const newPath = pathParts.join("/");
+    const newCategoryDir = path.join(userDir, newPath);
 
     if (
       !(await fs
@@ -80,14 +93,21 @@ export const renameCategoryAction = async (formData: FormData) => {
       if (file.isFile() && file.name.endsWith(".md")) {
         const filePath = path.join(newCategoryDir, file.name);
         const content = await readFile(filePath);
-        const list = parseMarkdown(content, "", newName);
-        list.category = newName;
+        const list = parseMarkdown(content, "", newPath);
+        list.category = newPath;
         list.updatedAt = new Date().toISOString();
         await writeFile(filePath, listToMarkdown(list));
       }
     }
 
-    revalidatePath("/");
+    try {
+      revalidatePath("/");
+    } catch (error) {
+      console.warn(
+        "Cache revalidation failed, but data was saved successfully:",
+        error
+      );
+    }
     return { success: true };
   } catch (error) {
     return { error: "Failed to rename category" };

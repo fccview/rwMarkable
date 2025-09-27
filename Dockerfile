@@ -38,7 +38,7 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Create data directory with proper permissions
-RUN mkdir -p /app/data/users /app/data/checklists && \
+RUN mkdir -p /app/data/users /app/data/checklists /app/data/notes && \
     chown -R nextjs:nodejs /app/data
 
 # Create .next cache directory with proper permissions

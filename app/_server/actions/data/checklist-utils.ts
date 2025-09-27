@@ -138,8 +138,9 @@ const listToMarkdown = (list: Checklist): string => {
           metadata.push(`target:${item.targetDate}`);
         }
 
-        return `- [${item.completed ? "x" : " "
-          }] ${escapedText} | ${metadata.join(" | ")}`;
+        return `- [${
+          item.completed ? "x" : " "
+        }] ${escapedText} | ${metadata.join(" | ")}`;
       }
 
       return `- [${item.completed ? "x" : " "}] ${escapedText}`;

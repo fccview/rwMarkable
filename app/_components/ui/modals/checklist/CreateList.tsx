@@ -15,12 +15,15 @@ import {
 } from "@/app/_server/actions/data/actions";
 import { Checklist, ChecklistType } from "@/app/_types";
 import { Button } from "@/app/_components/ui/elements/button";
-import { Dropdown } from "@/app/_components/ui/elements/dropdown";
+import { CategoryTreeSelector } from "@/app/_components/ui/elements/category-tree-selector";
 import { Modal } from "@/app/_components/ui/elements/modal";
 
 interface Category {
   name: string;
   count: number;
+  path: string;
+  parent?: string;
+  level: number;
 }
 
 interface CreateListModalProps {
@@ -50,14 +53,6 @@ export function CreateListModal({
     }
   }, []);
 
-  const categoryOptions = [
-    { id: "", name: "Uncategorized", icon: ListTodo },
-    ...categories.map((cat) => ({
-      id: cat.name,
-      name: `${cat.name} (${cat.count})`,
-      icon: Folder,
-    })),
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +64,9 @@ export function CreateListModal({
       if (showNewCategory && newCategory.trim()) {
         const categoryFormData = new FormData();
         categoryFormData.append("name", newCategory.trim());
+        if (category) {
+          categoryFormData.append("parent", category);
+        }
         await createCategoryAction(categoryFormData);
       }
 
@@ -76,7 +74,7 @@ export function CreateListModal({
       formData.append("title", title.trim());
       formData.append(
         "category",
-        showNewCategory ? newCategory.trim() : category || ""
+        showNewCategory ? (category ? `${category}/${newCategory.trim()}` : newCategory.trim()) : category || ""
       );
       formData.append("type", type);
 
@@ -122,11 +120,10 @@ export function CreateListModal({
             <button
               type="button"
               onClick={() => setType("simple")}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                type === "simple"
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
-              }`}
+              className={`p-4 rounded-lg border-2 transition-all ${type === "simple"
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50"
+                }`}
               disabled={isLoading}
             >
               <div className="flex flex-col items-center gap-2">
@@ -142,11 +139,10 @@ export function CreateListModal({
             <button
               type="button"
               onClick={() => setType("task")}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                type === "task"
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
-              }`}
+              className={`p-4 rounded-lg border-2 transition-all ${type === "task"
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50"
+                }`}
               disabled={isLoading}
             >
               <div className="flex flex-col items-center gap-2">
@@ -168,10 +164,10 @@ export function CreateListModal({
           </label>
           {!showNewCategory ? (
             <div className="flex gap-2 items-center">
-              <Dropdown
-                value={category}
-                options={categoryOptions}
-                onChange={setCategory}
+              <CategoryTreeSelector
+                categories={categories}
+                selectedCategory={category}
+                onCategorySelect={setCategory}
                 className="flex-1"
               />
               <Button
@@ -185,26 +181,31 @@ export function CreateListModal({
               </Button>
             </div>
           ) : (
-            <div className="flex gap-2 items-center">
-              <input
-                type="text"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                className="flex-1 px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                placeholder="Enter new category name..."
-                disabled={isLoading}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setShowNewCategory(false);
-                  setNewCategory("");
-                }}
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                  placeholder="Enter new category name..."
+                  disabled={isLoading}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowNewCategory(false);
+                    setNewCategory("");
+                  }}
+                  disabled={isLoading}
+                >
+                  Cancel
+                </Button>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                New category will be created in: {category ? categories.find(cat => cat.path === category)?.name || category : "Root level"}
+              </div>
             </div>
           )}
         </div>

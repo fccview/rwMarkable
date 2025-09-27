@@ -7,18 +7,19 @@ import { Modal } from "@/app/_components/ui/elements/modal";
 
 interface DeleteCategoryModalProps {
   isOpen: boolean;
-  categoryName: string;
+  categoryPath: string;
   onClose: () => void;
   onConfirm: () => Promise<void>;
 }
 
 export function DeleteCategoryModal({
   isOpen,
-  categoryName,
+  categoryPath,
   onClose,
   onConfirm,
 }: DeleteCategoryModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const categoryName = categoryPath.split('/').pop() || categoryPath;
 
   const handleConfirm = async () => {
     setIsLoading(true);

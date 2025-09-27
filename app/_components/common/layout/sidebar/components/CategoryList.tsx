@@ -36,6 +36,7 @@ interface CategoryListProps {
   onDeleteCategory: (categoryName: string) => void;
   onRenameCategory: (categoryName: string) => void;
   onQuickCreate: (categoryName: string) => void;
+  onCreateSubcategory?: (categoryPath: string) => void;
   onItemClick: (item: Checklist | Note) => void;
   onEditItem?: (item: Checklist | Note) => void;
   isItemSelected: (item: Checklist | Note) => boolean;
@@ -51,92 +52,117 @@ export function CategoryList({
   onDeleteCategory,
   onRenameCategory,
   onQuickCreate,
+  onCreateSubcategory,
   onItemClick,
   onEditItem,
   isItemSelected,
   mode,
   getSharingStatus,
 }: CategoryListProps) {
-  const getItemsInCategory = (categoryName: string) => {
+  const getItemsInCategory = (categoryPath: string) => {
     return items.filter(
       (item) =>
-        (item.category || "Uncategorized") === categoryName && !item.isShared
+        (item.category || "Uncategorized") === categoryPath && !item.isShared
     );
   };
 
-  if (!categories || categories.length === 0 || !items || items.length === 0) {
-    return null;
-  }
+  const getSubCategories = (parentPath: string) => {
+    return categories.filter((cat) => cat.parent === parentPath);
+  };
 
-  return (
-    <div className="space-y-1">
-      {categories.map((category) => {
-        const categoryItems = getItemsInCategory(category.name);
-        const isCollapsed = collapsedCategories.has(category.name);
-        const hasItems = categoryItems.length > 0;
+  const getTotalItemsInCategory = (categoryPath: string): number => {
+    const directItems = getItemsInCategory(categoryPath).length;
+    const subCategories = getSubCategories(categoryPath);
+    const subCategoryItems = subCategories.reduce((total, subCategory) => {
+      return total + getTotalItemsInCategory(subCategory.path);
+    }, 0);
+    return directItems + subCategoryItems;
+  };
 
-        return (
-          <div key={category.name} className="space-y-1">
-            <div className="flex items-center justify-between group">
-              <button
-                onClick={() => onToggleCategory(category.name)}
-                className={cn(
-                  "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors w-full text-left",
-                  hasItems
-                    ? "hover:bg-muted/50 cursor-pointer"
-                    : "text-muted-foreground cursor-default"
-                )}
+  const renderCategory = (category: Category) => {
+    const categoryItems = getItemsInCategory(category.path);
+    const isCollapsed = collapsedCategories.has(category.path);
+    const hasItems = categoryItems.length > 0;
+    const subCategories = getSubCategories(category.path);
+    const hasSubCategories = subCategories.length > 0;
+    const totalItems = getTotalItemsInCategory(category.path);
+
+    return (
+      <div key={category.path} className="space-y-1">
+        <div className="flex items-center justify-between group">
+          <button
+            onClick={() => onToggleCategory(category.path)}
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors w-full text-left",
+              hasItems || hasSubCategories
+                ? "hover:bg-muted/50 cursor-pointer"
+                : "text-muted-foreground cursor-default"
+            )}
+            style={{ paddingLeft: `${12 + category.level * 16}px` }}
+          >
+            {hasItems || hasSubCategories ? (
+              isCollapsed ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )
+            ) : (
+              <div className="w-4" />
+            )}
+            <Folder className="h-4 w-4" />
+            <span className="truncate">{category.name}</span>
+            <span className="text-xs text-muted-foreground ml-auto">
+              {totalItems}
+            </span>
+          </button>
+
+          <DropdownMenu
+            trigger={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
               >
-                {hasItems ? (
-                  isCollapsed ? (
-                    <ChevronRight className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )
-                ) : (
-                  <div className="w-4" />
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            }
+            align="right"
+          >
+            <DropdownMenuItem
+              onClick={() => onQuickCreate(category.path)}
+              icon={<Plus className="h-4 w-4" />}
+            >
+              New {mode === "checklists" ? "Checklist" : "Note"}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onCreateSubcategory?.(category.path)}
+              icon={<Folder className="h-4 w-4" />}
+            >
+              Create Subcategory
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onRenameCategory(category.path)}>
+              Rename Category
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onDeleteCategory(category.path)}
+              variant="destructive"
+            >
+              Delete Category
+            </DropdownMenuItem>
+          </DropdownMenu>
+        </div>
+
+        {!isCollapsed && (
+          <>
+            {hasSubCategories && (
+              <div className="space-y-1 ml-2 border-l border-border/30 pl-2">
+                {subCategories.map((subCategory) =>
+                  renderCategory(subCategory)
                 )}
-                <Folder className="h-4 w-4" />
-                <span className="truncate">{category.name}</span>
-                <span className="text-xs text-muted-foreground ml-auto">
-                  {categoryItems.length}
-                </span>
-              </button>
-
-              <DropdownMenu
-                trigger={
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                }
-                align="right"
-              >
-                <DropdownMenuItem
-                  onClick={() => onQuickCreate(category.name)}
-                  icon={<Plus className="h-4 w-4" />}
-                >
-                  New {mode === "checklists" ? "Checklist" : "Note"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onRenameCategory(category.name)}
-                >
-                  Rename Category
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onDeleteCategory(category.name)}
-                  variant="destructive"
-                >
-                  Delete Category
-                </DropdownMenuItem>
-              </DropdownMenu>
-            </div>
-
-            {!isCollapsed && hasItems && (
-              <div className="ml-6 space-y-1">
+              </div>
+            )}
+            {hasItems && (
+              <div className="space-y-0.5 ml-2 border-l border-border/30 pl-2">
                 {categoryItems.map((item) => (
                   <SidebarItem
                     key={item.id}
@@ -150,9 +176,21 @@ export function CategoryList({
                 ))}
               </div>
             )}
-          </div>
-        );
-      })}
+          </>
+        )}
+      </div>
+    );
+  };
+
+  if (!categories || categories.length === 0) {
+    return null;
+  }
+
+  const rootCategories = categories.filter((cat) => !cat.parent);
+
+  return (
+    <div className="space-y-1">
+      {rootCategories.map((category) => renderCategory(category))}
     </div>
   );
 }

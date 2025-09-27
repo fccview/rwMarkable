@@ -19,7 +19,7 @@ interface LayoutProps {
   sharingStatuses?: Record<string, SharingStatus>;
   onOpenSettings: () => void;
   onOpenCreateModal: (initialCategory?: string) => void;
-  onOpenCategoryModal: () => void;
+  onOpenCategoryModal: (parentCategory?: string) => void;
   onCategoryDeleted?: (categoryName: string) => void;
   onCategoryRenamed?: (oldName: string, newName: string) => void;
   children: React.ReactNode;

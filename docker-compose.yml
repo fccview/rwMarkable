@@ -12,6 +12,10 @@ services:
       # This is needed for persistent data storage on YOUR host machine rather than inside the docker volume.
       - ./data:/app/data:rw
       - ./config:/app/config:ro
+      # --- MOUNT CACHE DIRECTORY (OPTIONAL)
+      # This improves performance by persisting Next.js cache between restarts
+      # Comment out the next line if you don't want to use cache persistence
+      - ./cache:/app/.next/cache:rw
     restart: unless-stopped
     environment:
       - NODE_ENV=production

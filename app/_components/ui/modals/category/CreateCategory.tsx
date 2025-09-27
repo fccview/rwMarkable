@@ -4,23 +4,29 @@ import { useState } from "react";
 import { createCategoryAction } from "@/app/_server/actions/data/actions";
 import { createDocsCategoryAction } from "@/app/_server/actions/data/notes-actions";
 import { Button } from "@/app/_components/ui/elements/button";
+import { CategoryTreeSelector } from "@/app/_components/ui/elements/category-tree-selector";
 import { Modal } from "@/app/_components/ui/elements/modal";
 import { Folder } from "lucide-react";
 import { useToast } from "@/app/_providers/ToastProvider";
-import { AppMode } from "@/app/_types";
+import { AppMode, Category } from "@/app/_types";
 
 interface CreateCategoryModalProps {
   onClose: () => void;
   onCreated: (category?: { name: string; count: number }) => void;
   mode?: AppMode;
+  categories?: Category[];
+  initialParent?: string;
 }
 
 export function CreateCategoryModal({
   onClose,
   onCreated,
   mode = "checklists",
+  categories = [],
+  initialParent = "",
 }: CreateCategoryModalProps) {
   const [categoryName, setCategoryName] = useState("");
+  const [parentCategory, setParentCategory] = useState(initialParent);
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
 
@@ -31,6 +37,9 @@ export function CreateCategoryModal({
 
     const formData = new FormData();
     formData.append("name", categoryName.trim());
+    if (parentCategory) {
+      formData.append("parent", parentCategory);
+    }
 
     const result =
       mode === "notes"
@@ -63,6 +72,19 @@ export function CreateCategoryModal({
       titleIcon={<Folder className="h-5 w-5 text-primary" />}
     >
       <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Parent Category (Optional)
+          </label>
+          <CategoryTreeSelector
+            categories={categories}
+            selectedCategory={parentCategory}
+            onCategorySelect={setParentCategory}
+            placeholder="No parent (root level)"
+            className="w-full"
+          />
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">
             Category Name *

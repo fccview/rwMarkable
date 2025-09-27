@@ -51,6 +51,8 @@ export function ChecklistClient({
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [initialCategory, setInitialCategory] = useState<string>("");
+  const [initialParentCategory, setInitialParentCategory] =
+    useState<string>("");
   const prevChecklistId = useRef(checklist.id);
 
   useEffect(() => {
@@ -85,8 +87,9 @@ export function ChecklistClient({
     setShowCreateModal(true);
   };
 
-  const handleOpenCategoryModal = () => {
+  const handleOpenCategoryModal = (parentCategory?: string) => {
     setShowCategoryModal(true);
+    setInitialParentCategory(parentCategory || "");
   };
 
   const handleOpenSettings = () => {
@@ -195,6 +198,7 @@ export function ChecklistClient({
               router.push(`/checklist/${newChecklist.id}`);
             }
             setShowCreateModal(false);
+            router.refresh();
           }}
           categories={categories}
           initialCategory={initialCategory}
@@ -204,9 +208,15 @@ export function ChecklistClient({
       {showCategoryModal && (
         <CreateCategoryModal
           mode={mode}
-          onClose={() => setShowCategoryModal(false)}
+          categories={categories}
+          initialParent={initialParentCategory}
+          onClose={() => {
+            setShowCategoryModal(false);
+            setInitialParentCategory("");
+          }}
           onCreated={() => {
             setShowCategoryModal(false);
+            setInitialParentCategory("");
             router.refresh();
           }}
         />

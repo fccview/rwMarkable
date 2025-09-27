@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import path from "path";
-import { getUserDir, writeFile } from "@/app/_server/utils/files";
+import { getUserDir, writeFile, ensureDir } from "@/app/_server/utils/files";
 import { getLists, getAllLists } from "./list-queries";
 import { listToMarkdown } from "./checklist-utils";
 import { isAdmin } from "@/app/_server/actions/auth/utils";
@@ -49,20 +49,35 @@ export const updateItemAction = async (
       "checklists",
       list.owner!
     );
-    const filePath = path.join(
-      ownerDir,
-      list.category || "Uncategorized",
-      `${listId}.md`
-    );
+    const categoryDir = path.join(ownerDir, list.category || "Uncategorized");
+    await ensureDir(categoryDir);
+
+    const filePath = path.join(categoryDir, `${listId}.md`);
 
     await writeFile(filePath, listToMarkdown(updatedList));
 
     if (!skipRevalidation) {
-      revalidatePath("/");
+      try {
+        revalidatePath("/");
+        revalidatePath(`/checklist/${listId}`);
+      } catch (error) {
+        console.warn(
+          "Cache revalidation failed, but data was saved successfully:",
+          error
+        );
+      }
     }
 
     return { success: true };
   } catch (error) {
+    console.error(
+      "Error updating item:",
+      error instanceof Error ? error.stack : "No stack trace"
+    );
+    console.error(
+      "Error updating item:",
+      error instanceof Error ? error.message : String(error)
+    );
     return { error: "Failed to update item" };
   }
 };
@@ -127,20 +142,32 @@ export const createItemAction = async (
       "checklists",
       list.owner!
     );
-    const filePath = path.join(
-      ownerDir,
-      list.category || "Uncategorized",
-      `${listId}.md`
-    );
+    const categoryDir = path.join(ownerDir, list.category || "Uncategorized");
+
+    await ensureDir(categoryDir);
+
+    const filePath = path.join(categoryDir, `${listId}.md`);
 
     await writeFile(filePath, listToMarkdown(updatedList));
 
     if (!skipRevalidation) {
-      revalidatePath("/");
+      try {
+        revalidatePath("/");
+        revalidatePath(`/checklist/${listId}`);
+      } catch (error) {
+        console.warn(
+          "Cache revalidation failed, but data was saved successfully:",
+          error
+        );
+      }
     }
 
     return { success: true, data: newItem };
   } catch (error) {
+    console.error(
+      "Error creating item:",
+      error instanceof Error ? error.stack : "No stack trace"
+    );
     return { error: "Failed to create item" };
   }
 };
@@ -196,6 +223,16 @@ export const deleteItemAction = async (formData: FormData) => {
 
     await writeFile(filePath, listToMarkdown(updatedList));
 
+    try {
+      revalidatePath("/");
+      revalidatePath(`/checklist/${listId}`);
+    } catch (error) {
+      console.warn(
+        "Cache revalidation failed, but data was saved successfully:",
+        error
+      );
+    }
+
     return { success: true };
   } catch (error) {
     return { error: "Failed to delete item" };
@@ -241,15 +278,24 @@ export const reorderItemsAction = async (formData: FormData) => {
       "checklists",
       list.owner!
     );
-    const filePath = path.join(
-      ownerDir,
-      list.category || "Uncategorized",
-      `${listId}.md`
-    );
+    const categoryDir = path.join(ownerDir, list.category || "Uncategorized");
+    await ensureDir(categoryDir);
+
+    const filePath = path.join(categoryDir, `${listId}.md`);
 
     const markdownContent = listToMarkdown(updatedList);
 
     await writeFile(filePath, markdownContent);
+
+    try {
+      revalidatePath("/");
+      revalidatePath(`/checklist/${listId}`);
+    } catch (error) {
+      console.warn(
+        "Cache revalidation failed, but data was saved successfully:",
+        error
+      );
+    }
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -311,15 +357,22 @@ export const updateItemStatusAction = async (formData: FormData) => {
       "checklists",
       list.owner!
     );
-    const filePath = path.join(
-      ownerDir,
-      list.category || "Uncategorized",
-      `${listId}.md`
-    );
+    const categoryDir = path.join(ownerDir, list.category || "Uncategorized");
+    await ensureDir(categoryDir);
+
+    const filePath = path.join(categoryDir, `${listId}.md`);
 
     await writeFile(filePath, listToMarkdown(updatedList));
 
-    revalidatePath("/");
+    try {
+      revalidatePath("/");
+      revalidatePath(`/checklist/${listId}`);
+    } catch (error) {
+      console.warn(
+        "Cache revalidation failed, but data was saved successfully:",
+        error
+      );
+    }
     return { success: true };
   } catch (error) {
     console.error("Error updating item status:", error);

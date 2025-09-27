@@ -36,7 +36,7 @@ interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenCreateModal: (initialCategory?: string) => void;
-  onOpenCategoryModal: () => void;
+  onOpenCategoryModal: (parentCategory?: string) => void;
   categories: Category[];
   checklists: Checklist[];
   docs?: Note[];
@@ -120,8 +120,8 @@ export function Sidebar({
     return sharingStatuses[itemId] || null;
   };
 
-  const handleDeleteCategory = (categoryName: string) => {
-    setCategoryToDelete(categoryName);
+  const handleDeleteCategory = (categoryPath: string) => {
+    setCategoryToDelete(categoryPath);
     setShowDeleteCategoryModal(true);
   };
 
@@ -129,7 +129,7 @@ export function Sidebar({
     if (!categoryToDelete) return;
 
     const formData = new FormData();
-    formData.append("name", categoryToDelete);
+    formData.append("path", categoryToDelete);
 
     const result =
       mode === "notes"
@@ -143,17 +143,17 @@ export function Sidebar({
     }
   };
 
-  const handleRenameCategory = (categoryName: string) => {
-    setCategoryToRename(categoryName);
+  const handleRenameCategory = (categoryPath: string) => {
+    setCategoryToRename(categoryPath);
     setShowRenameCategoryModal(true);
   };
 
   const handleConfirmRenameCategory = async (
-    oldName: string,
+    oldPath: string,
     newName: string
   ) => {
     const formData = new FormData();
-    formData.append("oldName", oldName);
+    formData.append("oldPath", oldPath);
     formData.append("newName", newName);
 
     const result =
@@ -164,21 +164,25 @@ export function Sidebar({
     if (result.success) {
       setShowRenameCategoryModal(false);
       setCategoryToRename(null);
-      onCategoryRenamed?.(oldName, newName);
+      onCategoryRenamed?.(oldPath, newName);
     }
   };
 
-  const handleQuickCreate = (categoryName: string) => {
-    onOpenCreateModal(categoryName);
+  const handleQuickCreate = (categoryPath: string) => {
+    onOpenCreateModal(categoryPath);
   };
 
-  const toggleCategory = (categoryName: string) => {
+  const handleCreateSubcategory = (categoryPath: string) => {
+    onOpenCategoryModal(categoryPath);
+  };
+
+  const toggleCategory = (categoryPath: string) => {
     setCollapsedCategories((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(categoryName)) {
-        newSet.delete(categoryName);
+      if (newSet.has(categoryPath)) {
+        newSet.delete(categoryPath);
       } else {
-        newSet.add(categoryName);
+        newSet.add(categoryPath);
       }
       return newSet;
     });
@@ -287,6 +291,7 @@ export function Sidebar({
               onDeleteCategory={handleDeleteCategory}
               onRenameCategory={handleRenameCategory}
               onQuickCreate={handleQuickCreate}
+              onCreateSubcategory={handleCreateSubcategory}
               onItemClick={handleItemClick}
               onEditItem={handleEditItem}
               isItemSelected={isItemSelected}
@@ -309,7 +314,7 @@ export function Sidebar({
       {showDeleteCategoryModal && categoryToDelete && (
         <DeleteCategoryModal
           isOpen={showDeleteCategoryModal}
-          categoryName={categoryToDelete}
+          categoryPath={categoryToDelete}
           onClose={() => {
             setShowDeleteCategoryModal(false);
             setCategoryToDelete(null);
@@ -321,7 +326,7 @@ export function Sidebar({
       {showRenameCategoryModal && categoryToRename && (
         <RenameCategoryModal
           isOpen={showRenameCategoryModal}
-          categoryName={categoryToRename}
+          categoryPath={categoryToRename}
           onClose={() => {
             setShowRenameCategoryModal(false);
             setCategoryToRename(null);

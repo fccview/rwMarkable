@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, FileText, Plus, Folder, FileText as DocIcon } from "lucide-react";
 import { Button } from "@/app/_components/ui/elements/button";
-import { Dropdown } from "@/app/_components/ui/elements/dropdown";
+import { CategoryTreeSelector } from "@/app/_components/ui/elements/category-tree-selector";
 import {
   createDocAction,
   createDocsCategoryAction,
@@ -37,14 +37,6 @@ export function CreateDocModal({
     }
   }, []);
 
-  const categoryOptions = [
-    { id: "", name: "Uncategorized", icon: DocIcon },
-    ...categories.map((cat) => ({
-      id: cat.name,
-      name: `${cat.name} (${cat.count})`,
-      icon: Folder,
-    })),
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +48,9 @@ export function CreateDocModal({
       if (showNewCategory && newCategory.trim()) {
         const categoryFormData = new FormData();
         categoryFormData.append("name", newCategory.trim());
+        if (category) {
+          categoryFormData.append("parent", category);
+        }
         await createDocsCategoryAction(categoryFormData);
       }
 
@@ -63,7 +58,7 @@ export function CreateDocModal({
       formData.append("title", title.trim());
       formData.append(
         "category",
-        showNewCategory ? newCategory.trim() : category
+        showNewCategory ? (category ? `${category}/${newCategory.trim()}` : newCategory.trim()) : category
       );
       formData.append("content", "");
 
@@ -113,10 +108,10 @@ export function CreateDocModal({
           </label>
           {!showNewCategory ? (
             <div className="flex gap-2 items-center">
-              <Dropdown
-                value={category}
-                options={categoryOptions}
-                onChange={setCategory}
+              <CategoryTreeSelector
+                categories={categories}
+                selectedCategory={category}
+                onCategorySelect={setCategory}
                 className="flex-1"
               />
               <Button
@@ -129,24 +124,29 @@ export function CreateDocModal({
               </Button>
             </div>
           ) : (
-            <div className="flex gap-2 items-center">
-              <input
-                type="text"
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                className="flex-1 px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                placeholder="Enter new category name..."
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setShowNewCategory(false);
-                  setNewCategory("");
-                }}
-              >
-                Cancel
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                  placeholder="Enter new category name..."
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowNewCategory(false);
+                    setNewCategory("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                New category will be created in: {category ? categories.find(cat => cat.path === category)?.name || category : "Root level"}
+              </div>
             </div>
           )}
         </div>

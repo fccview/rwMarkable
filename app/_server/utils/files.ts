@@ -2,7 +2,6 @@
 
 import fs from "fs/promises";
 import path from "path";
-import { cookies } from "next/headers";
 import { getCurrentUser } from "@/app/_server/actions/users/current";
 
 const DATA_DIR = path.join(process.cwd(), "data", "checklists");

@@ -220,7 +220,12 @@ export async function getItemSharingStatusAction(
 export async function getAllSharingStatusesAction(
   items: Array<{ id: string; type: "checklist" | "document"; owner: string }>
 ): Promise<
-  Result<Record<string, { isShared: boolean; sharedWith: string[]; isPubliclyShared: boolean }>>
+  Result<
+    Record<
+      string,
+      { isShared: boolean; sharedWith: string[]; isPubliclyShared: boolean }
+    >
+  >
 > {
   try {
     const currentUser = await getCurrentUser();
@@ -228,19 +233,34 @@ export async function getAllSharingStatusesAction(
       return { success: false, error: "Not authenticated" };
     }
 
-    const results: Record<string, { isShared: boolean; sharedWith: string[]; isPubliclyShared: boolean }> = {};
+    const results: Record<
+      string,
+      { isShared: boolean; sharedWith: string[]; isPubliclyShared: boolean }
+    > = {};
 
     for (const item of items) {
       if (currentUser.username !== item.owner) {
-        results[item.id] = { isShared: false, sharedWith: [], isPubliclyShared: false };
+        results[item.id] = {
+          isShared: false,
+          sharedWith: [],
+          isPubliclyShared: false,
+        };
         continue;
       }
 
       try {
-        const metadata = await getItemSharingMetadata(item.id, item.type, item.owner);
+        const metadata = await getItemSharingMetadata(
+          item.id,
+          item.type,
+          item.owner
+        );
 
         if (!metadata) {
-          results[item.id] = { isShared: false, sharedWith: [], isPubliclyShared: false };
+          results[item.id] = {
+            isShared: false,
+            sharedWith: [],
+            isPubliclyShared: false,
+          };
         } else {
           results[item.id] = {
             isShared: metadata.sharedWith.length > 0,
@@ -249,8 +269,15 @@ export async function getAllSharingStatusesAction(
           };
         }
       } catch (error) {
-        console.error(`Error getting sharing status for item ${item.id}:`, error);
-        results[item.id] = { isShared: false, sharedWith: [], isPubliclyShared: false };
+        console.error(
+          `Error getting sharing status for item ${item.id}:`,
+          error
+        );
+        results[item.id] = {
+          isShared: false,
+          sharedWith: [],
+          isPubliclyShared: false,
+        };
       }
     }
 

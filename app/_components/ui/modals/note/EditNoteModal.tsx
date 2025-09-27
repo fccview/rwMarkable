@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { FileText, Folder } from "lucide-react";
 import { Modal } from "@/app/_components/ui/elements/modal";
 import { Button } from "@/app/_components/ui/elements/button";
-import { Dropdown } from "@/app/_components/ui/elements/dropdown";
+import { CategoryTreeSelector } from "@/app/_components/ui/elements/category-tree-selector";
 import { updateDocAction } from "@/app/_server/actions/data/notes-actions";
 import { getCurrentUser } from "@/app/_server/actions/auth/utils";
 import { Note, Category } from "@/app/_types";
@@ -40,15 +40,6 @@ export function EditNoteModal({
     };
     checkOwnership();
   }, [note.owner]);
-
-  const categoryOptions = [
-    { id: "", name: "Uncategorized", icon: FileText },
-    ...categories.map((cat) => ({
-      id: cat.name,
-      name: `${cat.name} (${cat.count})`,
-      icon: Folder,
-    })),
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,10 +88,10 @@ export function EditNoteModal({
             <label className="block text-sm font-medium text-foreground mb-2">
               Category
             </label>
-            <Dropdown
-              value={category}
-              options={categoryOptions}
-              onChange={setCategory}
+            <CategoryTreeSelector
+              categories={categories}
+              selectedCategory={category}
+              onCategorySelect={setCategory}
               className="w-full"
             />
           </div>

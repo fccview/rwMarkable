@@ -8,17 +8,18 @@ import { useToast } from "@/app/_providers/ToastProvider";
 
 interface RenameCategoryModalProps {
   isOpen: boolean;
-  categoryName: string;
+  categoryPath: string;
   onClose: () => void;
-  onRename: (oldName: string, newName: string) => Promise<void>;
+  onRename: (oldPath: string, newName: string) => Promise<void>;
 }
 
 export function RenameCategoryModal({
   isOpen,
-  categoryName,
+  categoryPath,
   onClose,
   onRename,
 }: RenameCategoryModalProps) {
+  const categoryName = categoryPath.split('/').pop() || categoryPath;
   const [newName, setNewName] = useState(categoryName);
   const [isRenaming, setIsRenaming] = useState(false);
   const { showToast } = useToast();
@@ -31,7 +32,7 @@ export function RenameCategoryModal({
 
     setIsRenaming(true);
     try {
-      await onRename(categoryName, newName.trim());
+      await onRename(categoryPath, newName.trim());
       showToast({
         type: "success",
         title: "Category renamed successfully!",
